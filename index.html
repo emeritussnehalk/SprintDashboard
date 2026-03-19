@@ -66,6 +66,24 @@
       white-space:nowrap;
       transition: all 0.2s ease;
     }
+    .seg .tab-btn.source-tab{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .seg .tab-btn.source-tab::after{
+      content:"";
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:#cbd5e1;
+      box-shadow: inset 0 0 0 1px rgba(15,23,42,.12);
+      flex-shrink:0;
+    }
+    .seg .tab-btn.source-tab.source-loaded::after{
+      background:#22c55e;
+      box-shadow: 0 0 0 1px rgba(34,197,94,.35);
+    }
     .seg .tab-btn:hover {
       background: rgba(11,143,106,0.06);
       color: var(--accent-dark);
@@ -75,6 +93,20 @@
       color:var(--text);
       box-shadow:var(--shadow-sm);
       font-weight: 700;
+    }
+    body.source-theme-sej #sourceTabs .tab-btn[aria-selected="true"],
+    body.source-theme-sej #dashboardTabs .tab-btn[aria-selected="true"]{
+      background:#e0f2fe;
+      color:#075985;
+      box-shadow: inset 0 0 0 1px #7dd3fc, var(--shadow-sm);
+      font-weight:700;
+    }
+    body.source-theme-pej #sourceTabs .tab-btn[aria-selected="true"],
+    body.source-theme-pej #dashboardTabs .tab-btn[aria-selected="true"]{
+      background:#f3e8ff;
+      color:#6b21a8;
+      box-shadow: inset 0 0 0 1px #d8b4fe, var(--shadow-sm);
+      font-weight:700;
     }
 
     .controls{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
@@ -109,6 +141,47 @@
     main{flex:1;min-height:0;display:flex;}
     .panel{flex:1;min-height:0;display:none;flex-direction:column;}
     .panel.active{display:flex;}
+    body.source-empty main{display:none;}
+    .reload-modal{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.45);
+      backdrop-filter: blur(2px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding:20px;
+    }
+    .reload-modal.show{display:flex;}
+    .reload-card{
+      width:min(560px, 100%);
+      background:#ffffff;
+      border:1px solid rgba(11,143,106,.25);
+      border-radius:18px;
+      box-shadow:0 20px 45px rgba(15,23,42,.25);
+      padding:22px;
+    }
+    .reload-head{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+    }
+    .reload-badge{
+      width:38px;height:38px;border-radius:12px;
+      display:grid;place-items:center;
+      color:#0b8f6a;background:#e7f6f1;border:1px solid #b7e7d7;
+      font-weight:900;
+    }
+    .reload-title{margin:0;font-size:18px;line-height:1.3;}
+    .reload-copy{margin:0;color:#475569;line-height:1.5;}
+    .reload-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+    .btn.reload-continue{
+      background:linear-gradient(90deg,#0b8f6a,#0a7f61);
+      border-color:#0b8f6a;
+      color:#fff;
+    }
     
     .dashboard-intro{
       margin:32px auto 0;
@@ -378,64 +451,23 @@
   </div>
 </div>
 
+        <span id="uploadControls" style="display:inline-flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <button class="btn primary" id="chooseActiveBtn" aria-label="Upload active source JIRA JSON or CSV">Upload data file</button>
+          <input id="jsonFileSej" type="file" accept=".json,.csv"/>
+          <input id="jsonFilePej" type="file" accept=".json,.csv"/>
+        </span>
 
-        <div class="seg" role="tablist" aria-label="Data Source Tabs">
-          <span class="tip" data-tip="Upload JSON or CSV"><button class="tab-btn icon" id="mode-upload" role="tab" aria-controls="mode-panel-upload" aria-selected="true" aria-label="Upload JSON or CSV"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 18a5 5 0 0 1-1.9-9.6 5.5 5.5 0 0 1 10.3-1.4A5 5 0 0 1 17 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 18v-6m0 0l-3 3m3-3l3 3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span>
-          <span class="tip" data-tip="Fetch via API"><button class="tab-btn icon" id="mode-api" role="tab" aria-controls="mode-panel-api" aria-selected="false" aria-label="Fetch via API"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M8 8h8M8 12h8M8 16h6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="18" cy="6" r="1.5" fill="currentColor"/></svg></button></span>
+        <div class="seg" id="sourceTabs" role="tablist" aria-label="Dataset Tabs">
+          <button class="tab-btn source-tab" id="source-sej" role="tab" aria-selected="true" aria-label="SEJ Data" title="SEJ: No file uploaded">SEJ</button>
+          <button class="tab-btn source-tab" id="source-pej" role="tab" aria-selected="false" aria-label="PEJ Data" title="PEJ: No file uploaded">PEJ</button>
         </div>
 
-        
-        <!-- Upload (icon) -->
-        <span id="uploadControls" style="display:inline-flex; align-items:center; gap:10px; flex-wrap:wrap;">        <span class="tip" data-tip="Upload JIRA JSON or CSV"><button class="btn primary icon-upload" id="chooseFileBtn" aria-label="Upload JIRA JSON or CSV">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 8l-5-5-5 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3v10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-        </button></span>
-        <span class="filepill" id="fileName">No file selected</span>
-        <input id="jsonFile" type="file" accept=".json,.csv"/></span>
-
-<div class="seg" role="tablist" aria-label="Dashboards Tabs">
-          <span class="tip" data-tip="Epic by Sprint"><button class="tab-btn icon" id="tab-epic" role="tab" aria-controls="panel-epic" aria-selected="true" aria-label="Epic by Sprint"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-  <path d="M12 2l8 4.5v11L12 22l-8-4.5v-11L12 2z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M12 22V12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M20 6.5l-8 4.5-8-4.5" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
-  <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-</svg></button></span>
-          <span class="tip" data-tip="Sprint with IssueType"><button class="tab-btn icon" id="tab-sprint" role="tab" aria-controls="panel-sprint" aria-selected="false" aria-label="Sprint with IssueType"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-  <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M3 10h18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M8 4v6M16 4v6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <circle cx="7" cy="15" r="1.5" fill="currentColor"/>
-  <circle cx="12" cy="15" r="1.5" fill="currentColor"/>
-  <circle cx="17" cy="15" r="1.5" fill="currentColor"/>
-</svg></button></span>
+<div class="seg" id="dashboardTabs" role="tablist" aria-label="Dashboard Tabs">
+          <button class="tab-btn" id="tab-epic" role="tab" aria-controls="panel-epic" aria-selected="true" aria-label="Epic by Sprint">Epic by Sprint</button>
+          <button class="tab-btn" id="tab-sprint" role="tab" aria-controls="panel-sprint" aria-selected="false" aria-label="Sprint with IssueType">Sprint with IssueType</button>
         </div>
       </div>
 
-      <div class="controls">
-        <div id="mode-panel-upload" class="mode-panel" role="tabpanel" aria-labelledby="mode-upload">
-          <!-- upload controls moved to header --></div>
-
-        <div id="mode-panel-api" class="mode-panel" role="tabpanel" aria-labelledby="mode-api" style="display:none;">
-          <div class="mode-panel-inner" style="display:block;">
-            <form id="apiForm" class="api-form" autocomplete="off">
-              <div class="api-grid">
-                <label><span>JIRA Base URL</span><input type="url" id="jiraUrl" placeholder="https://your-domain.atlassian.net" required /></label>
-                <label><span>Email</span><input type="email" id="jiraEmail" placeholder="you@company.com" required /></label>
-                <label><span>API Token</span><input type="password" id="jiraToken" placeholder="Atlassian API token" required /></label>
-                <label class="span-2"><span>JQL</span><input type="text" id="jiraJql" placeholder='project = ABC ORDER BY updated DESC' required /></label>
-                <label><span>Max Results</span><input type="number" id="jiraMax" min="1" max="1000" value="100" /></label>
-                <label><span>Fields (optional)</span><input type="text" id="jiraFields" placeholder="summary,status,issuetype,customfield_10007" /></label>
-              </div>
-
-              <div class="api-actions">
-                <button type="submit" class="btn primary" id="fetchBtn">Fetch</button>
-                <span class="filepill" id="apiStatus">Idle</span>
-              </div>
-
-              <div class="api-note"><strong>Heads up:</strong> If your browser blocks the request (CORS), use Upload JSON or run via a local server/proxy.</div>
-            </form>
-          </div>
-        </div>
-      </div>
     </div>
   </header>
 
@@ -575,31 +607,130 @@
       border-color: #0B8F6A;
       background-color: #E7F6F1;
     }
-    /* Enhanced select styling for Epic dashboard */
+    /* Native multi-select styling to match Global Filters reference */
+    .filter-select-shell {
+      border: 2px solid #86efac;
+      border-radius: 16px;
+      background: #ffffff;
+      overflow: hidden;
+      box-sizing: border-box;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .filter-select-shell:focus-within {
+      border-color: #6ee7b7;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16);
+    }
     .filter-select {
-      appearance: none;
+      appearance: listbox;
+      -webkit-appearance: listbox;
+      -moz-appearance: listbox;
       background-image: none;
+      background-color: #ffffff;
+      border: 0 !important;
+      border-radius: 0 !important;
+      padding: 8px 10px !important;
       padding-right: 0.75rem;
       cursor: pointer;
+      color: #0f172a;
+      outline: none !important;
+      user-select: none;
+      box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-gutter: stable;
     }
     .filter-select:focus {
       outline: none;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    .filter-select:focus-visible {
+      outline: none !important;
+      border: 0 !important;
+      box-shadow: none !important;
     }
     .filter-select option {
-      padding: 0.75rem;
+      padding: 0.9rem 1rem;
       background: white;
       color: #0f172a;
+      line-height: 1.35;
+      user-select: none;
+      white-space: nowrap;
     }
     .filter-select option:checked {
-      background: linear-gradient(135deg, #E7F6F1, #d1fae5);
-      color: #086E53;
+      background: #e7eef7 !important;
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+      font-weight: 600 !important;
+    }
+    .filter-select option:checked:hover,
+    .filter-select option:checked:focus {
+      background: #dce6f3 !important;
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+    }
+    .filter-select option:hover,
+    .filter-select option:focus {
+      background: #f2f6fb !important;
+      color: #0f172a !important;
+    }
+    .custom-listbox {
+      height: 16.5rem;
+      min-height: 16.5rem;
+      max-height: 16.5rem;
+      overflow: auto;
+      padding: 0.35rem;
+      background: #ffffff;
+      border-radius: 14px;
+    }
+    .custom-listbox-option {
+      display: block;
+      padding: 0.65rem 0.75rem;
+      line-height: 1.25;
+      font-size: 0.95rem;
+      color: #0f172a;
+      white-space: nowrap;
+      cursor: pointer;
+      border-radius: 0;
+      user-select: none;
+      min-width: 100%;
+      width: max-content;
+      box-sizing: border-box;
+    }
+    .custom-listbox-option:hover {
+      background: #f2f6fb;
+    }
+    .custom-listbox-option.selected {
+      background: #e7eef7;
+      color: #0f172a;
       font-weight: 600;
     }
+    /* Strong override for native multiple-select blue highlight (Epic by Sprint) */
+    select.filter-select[multiple] option:checked,
+    select.filter-select[multiple] option:checked:hover,
+    select.filter-select[multiple] option:checked:focus {
+      background-color: #e7eef7 !important;
+      background-image: linear-gradient(#e7eef7, #e7eef7) !important;
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
     }
-    .filter-select option:checked {
-      background: linear-gradient(135deg, #E7F6F1, #d1fae5);
-      color: #086E53;
-      font-weight: 600;
+    .filter-select::selection,
+    .filter-select option::selection {
+      background: transparent;
+      color: inherit;
+    }
+    .filter-select::-webkit-scrollbar {
+      width: 12px;
+    }
+    .filter-select::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .filter-select::-webkit-scrollbar-thumb {
+      background: #8b8b8b;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      background-clip: content-box;
     }
     .loading {
       position: fixed;
@@ -651,37 +782,48 @@
           &lt;div class=&quot;w-1 h-8 bg-gradient-to-b from-emerald-600 to-teal-600 rounded-full&quot;&gt;&lt;/div&gt;
           &lt;h2 class=&quot;text-xl font-bold text-emerald-800&quot;&gt;Global Filters&lt;/h2&gt;
         &lt;/div&gt;
-        &lt;div class=&quot;grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5&quot;&gt;
+        &lt;div class=&quot;grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5&quot;&gt;
           &lt;div class=&quot;filter-group&quot;&gt;
             &lt;label class=&quot;block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2&quot;&gt;
               &lt;svg class=&quot;w-4 h-4&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
               Product Manager
             &lt;/label&gt;
-            &lt;select id=&quot;pm-filter&quot; class=&quot;filter-select block w-full p-3 border-2 border-emerald-200 rounded-xl bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200&quot; multiple&gt;&lt;/select&gt;
+            &lt;div class=&quot;filter-select-shell&quot;&gt;&lt;select id=&quot;pm-filter&quot; class=&quot;filter-select block w-full p-3 rounded-xl bg-white transition-all duration-200&quot; multiple size=&quot;6&quot;&gt;&lt;/select&gt;&lt;/div&gt;
           &lt;/div&gt;
           &lt;div class=&quot;filter-group&quot;&gt;
             &lt;label class=&quot;block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2&quot;&gt;
               &lt;svg class=&quot;w-4 h-4&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
               Sprint
             &lt;/label&gt;
-            &lt;select id=&quot;sprint-filter&quot; class=&quot;filter-select block w-full p-3 border-2 border-emerald-200 rounded-xl bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200&quot; multiple&gt;&lt;/select&gt;
+            &lt;div class=&quot;filter-select-shell&quot;&gt;&lt;select id=&quot;sprint-filter&quot; class=&quot;filter-select block w-full p-3 rounded-xl bg-white transition-all duration-200&quot; multiple size=&quot;6&quot;&gt;&lt;/select&gt;&lt;/div&gt;
           &lt;/div&gt;
           &lt;div class=&quot;filter-group&quot;&gt;
             &lt;label class=&quot;block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2&quot;&gt;
               &lt;svg class=&quot;w-4 h-4&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
               Status
             &lt;/label&gt;
-            &lt;select id=&quot;status-filter&quot; class=&quot;filter-select block w-full p-3 border-2 border-emerald-200 rounded-xl bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200&quot; multiple&gt;&lt;/select&gt;
+            &lt;div class=&quot;filter-select-shell&quot;&gt;&lt;select id=&quot;status-filter&quot; class=&quot;filter-select block w-full p-3 rounded-xl bg-white transition-all duration-200&quot; multiple size=&quot;6&quot;&gt;&lt;/select&gt;&lt;/div&gt;
           &lt;/div&gt;
           &lt;div class=&quot;filter-group&quot;&gt;
             &lt;label class=&quot;block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2&quot;&gt;
               &lt;svg class=&quot;w-4 h-4&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
               University
             &lt;/label&gt;
-            &lt;select id=&quot;university-filter&quot; class=&quot;filter-select block w-full p-3 border-2 border-emerald-200 rounded-xl bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200&quot; multiple&gt;&lt;/select&gt;
+            &lt;div class=&quot;filter-select-shell&quot;&gt;&lt;select id=&quot;university-filter&quot; class=&quot;filter-select block w-full p-3 rounded-xl bg-white transition-all duration-200&quot; multiple size=&quot;6&quot;&gt;&lt;/select&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;filter-group&quot;&gt;
+            &lt;label class=&quot;block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2&quot;&gt;
+              &lt;svg class=&quot;w-4 h-4&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
+              Skill Set
+            &lt;/label&gt;
+            &lt;div class=&quot;filter-select-shell&quot;&gt;&lt;select id=&quot;skillset-filter&quot; class=&quot;filter-select block w-full p-3 rounded-xl bg-white transition-all duration-200&quot; multiple size=&quot;6&quot;&gt;&lt;/select&gt;&lt;/div&gt;
           &lt;/div&gt;
         &lt;/div&gt;
         &lt;div class=&quot;mt-6 flex justify-end gap-3&quot;&gt;
+          &lt;button class=&quot;bg-white border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2&quot; id=&quot;reset-global-filters&quot;&gt;
+            &lt;svg class=&quot;w-5 h-5&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
+            Reset Filters
+          &lt;/button&gt;
           &lt;button class=&quot;bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2&quot; id=&quot;apply-global-filters&quot;&gt;
             &lt;svg class=&quot;w-5 h-5&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
             Apply Filters
@@ -718,7 +860,21 @@
   let epics = [];
   let selectedEpics = new Set();
   const sortStates = {};
+  const filteredStoriesByEpic = {};
+  const epicFilterSelections = {};
   let filteredEpics = [];
+
+  function suppressListboxTextSelection(selectEl) {
+    if (!selectEl) return;
+    const clearSelection = () =&gt; {
+      const sel = window.getSelection &amp;&amp; window.getSelection();
+      if (sel &amp;&amp; sel.rangeCount) sel.removeAllRanges();
+    };
+    selectEl.addEventListener(&#x27;selectstart&#x27;, (e) =&gt; e.preventDefault());
+    selectEl.addEventListener(&#x27;mouseup&#x27;, () =&gt; setTimeout(clearSelection, 0));
+    selectEl.addEventListener(&#x27;keyup&#x27;, clearSelection);
+    selectEl.addEventListener(&#x27;change&#x27;, clearSelection);
+  }
 
   function getStatusColor(status) {
     if (!status) return &#x27;bg-gray-100 text-gray-800&#x27;;
@@ -739,6 +895,11 @@
 
   document.getElementById(&#x27;fileInput&#x27;).addEventListener(&#x27;change&#x27;, handleFileSelect);
   document.getElementById(&#x27;drop-area&#x27;).addEventListener(&#x27;drop&#x27;, handleDrop, false);
+  suppressListboxTextSelection(document.getElementById(&#x27;pm-filter&#x27;));
+  suppressListboxTextSelection(document.getElementById(&#x27;sprint-filter&#x27;));
+  suppressListboxTextSelection(document.getElementById(&#x27;status-filter&#x27;));
+  suppressListboxTextSelection(document.getElementById(&#x27;university-filter&#x27;));
+  suppressListboxTextSelection(document.getElementById(&#x27;skillset-filter&#x27;));
   [&#x27;dragenter&#x27;, &#x27;dragover&#x27;, &#x27;dragleave&#x27;, &#x27;drop&#x27;].forEach(eventName =&gt; {
     document.getElementById(&#x27;drop-area&#x27;).addEventListener(eventName, e =&gt; {
       e.preventDefault();
@@ -756,6 +917,29 @@
     } else {
       displayEpics(filtered);
     }
+    clearEpicDetails();
+  });
+
+  document.getElementById(&#x27;reset-global-filters&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; {
+    const filterIds = [&#x27;pm-filter&#x27;, &#x27;sprint-filter&#x27;, &#x27;status-filter&#x27;, &#x27;university-filter&#x27;, &#x27;skillset-filter&#x27;];
+    filterIds.forEach((id) =&gt; {
+      const select = document.getElementById(id);
+      if (!select) return;
+      Array.from(select.options).forEach((opt) =&gt; {
+        opt.selected = (opt.value === &#x27;All&#x27;);
+      });
+      const listbox = select.parentElement &amp;&amp; select.parentElement.querySelector(&#x27;.custom-listbox&#x27;);
+      if (listbox) {
+        syncCustomListbox(select, listbox);
+        normalizeCustomListboxRowWidths(listbox);
+      }
+    });
+
+    const filtered = applyGlobalFilters();
+    filteredEpics = filtered;
+    const searchInput = document.getElementById(&#x27;epic-search&#x27;);
+    if (searchInput) searchInput.value = &#x27;&#x27;;
+    displayEpics(filtered);
     clearEpicDetails();
   });
 
@@ -1031,13 +1215,15 @@
     const sprintFilter = document.getElementById(&#x27;sprint-filter&#x27;);
     const statusFilter = document.getElementById(&#x27;status-filter&#x27;);
     const universityFilter = document.getElementById(&#x27;university-filter&#x27;);
-    const sets = { pm: new Set(), sprint: new Set(), status: new Set(), university: new Set() };
+    const skillSetFilter = document.getElementById(&#x27;skillset-filter&#x27;);
+    const sets = { pm: new Set(), sprint: new Set(), status: new Set(), university: new Set(), skillSet: new Set() };
 
     allData.forEach(item =&gt; {
       if (item[&quot;Custom field (Product Manager)&quot;]) sets.pm.add(item[&quot;Custom field (Product Manager)&quot;]);
       if (item.Sprint) sets.sprint.add(item.Sprint);
       if (item.Status) sets.status.add(item.Status);
       if (item[&quot;Custom field (University Name)&quot;]) sets.university.add(item[&quot;Custom field (University Name)&quot;]);
+      if (item[&quot;Custom field (Skill Set)&quot;]) sets.skillSet.add(item[&quot;Custom field (Skill Set)&quot;]);
     });
 
     allData.forEach(item =&gt; {
@@ -1050,6 +1236,13 @@
     populateFilter(sprintFilter, sets.sprint);
     populateFilter(statusFilter, sets.status);
     populateFilter(universityFilter, sets.university);
+    populateFilter(skillSetFilter, sets.skillSet);
+
+    setupCustomListbox(pmFilter);
+    setupCustomListbox(sprintFilter);
+    setupCustomListbox(statusFilter);
+    setupCustomListbox(universityFilter);
+    setupCustomListbox(skillSetFilter);
   }
 
   function populateFilter(selectElement, values) {
@@ -1062,21 +1255,95 @@
     });
   }
 
+  function syncCustomListbox(selectElement, listbox) {
+    const selectedValues = new Set(Array.from(selectElement.selectedOptions).map((opt) =&gt; opt.value));
+    Array.from(listbox.querySelectorAll(&#x27;.custom-listbox-option&#x27;)).forEach((item) =&gt; {
+      item.classList.toggle(&#x27;selected&#x27;, selectedValues.has(item.dataset.value));
+    });
+  }
+
+  function normalizeCustomListboxRowWidths(listbox) {
+    if (!listbox) return;
+    const rows = Array.from(listbox.querySelectorAll(&#x27;.custom-listbox-option&#x27;));
+    if (!rows.length) return;
+
+    rows.forEach((row) =&gt; { row.style.width = &#x27;auto&#x27;; });
+    const maxRowWidth = rows.reduce((max, row) =&gt; Math.max(max, row.scrollWidth), 0);
+    const targetWidth = Math.max(maxRowWidth, listbox.clientWidth);
+    rows.forEach((row) =&gt; { row.style.width = `${targetWidth}px`; });
+  }
+
+  function setupCustomListbox(selectElement) {
+    if (!selectElement) return;
+    const shell = selectElement.closest(&#x27;.filter-select-shell&#x27;);
+    if (!shell) return;
+
+    let listbox = shell.querySelector(&#x27;.custom-listbox&#x27;);
+    if (!listbox) {
+      listbox = document.createElement(&#x27;div&#x27;);
+      listbox.className = &#x27;custom-listbox&#x27;;
+      shell.appendChild(listbox);
+    }
+
+    listbox.innerHTML = &#x27;&#x27;;
+    Array.from(selectElement.options).forEach((opt) =&gt; {
+      const item = document.createElement(&#x27;div&#x27;);
+      item.className = &#x27;custom-listbox-option&#x27; + (opt.selected ? &#x27; selected&#x27; : &#x27;&#x27;);
+      item.dataset.value = opt.value;
+      item.textContent = opt.textContent;
+      listbox.appendChild(item);
+    });
+
+    normalizeCustomListboxRowWidths(listbox);
+
+    selectElement.style.display = &#x27;none&#x27;;
+
+    listbox.onclick = (e) =&gt; {
+      const item = e.target.closest(&#x27;.custom-listbox-option&#x27;);
+      if (!item) return;
+      const value = item.dataset.value;
+
+      if (value === &#x27;All&#x27;) {
+        Array.from(selectElement.options).forEach((opt) =&gt; {
+          opt.selected = (opt.value === &#x27;All&#x27;);
+        });
+      } else {
+        const allOption = selectElement.querySelector(&#x27;option[value=&quot;All&quot;]&#x27;);
+        if (allOption) allOption.selected = false;
+        const targetOption = Array.from(selectElement.options).find((opt) =&gt; opt.value === value);
+        if (targetOption) targetOption.selected = !targetOption.selected;
+
+        const anySpecific = Array.from(selectElement.options).some((opt) =&gt; opt.value !== &#x27;All&#x27; &amp;&amp; opt.selected);
+        if (!anySpecific &amp;&amp; allOption) allOption.selected = true;
+      }
+
+      syncCustomListbox(selectElement, listbox);
+      normalizeCustomListboxRowWidths(listbox);
+    };
+
+    if (!listbox.hasAttribute(&#x27;data-resize-bound&#x27;)) {
+      listbox.setAttribute(&#x27;data-resize-bound&#x27;, &#x27;true&#x27;);
+      window.addEventListener(&#x27;resize&#x27;, () =&gt; normalizeCustomListboxRowWidths(listbox));
+    }
+  }
+
   function applyGlobalFilters() {
   const pmFilter = getSelectedValues(&#x27;pm-filter&#x27;);
   const sprintFilter = getSelectedValues(&#x27;sprint-filter&#x27;);
   const statusFilter = getSelectedValues(&#x27;status-filter&#x27;);
   const universityFilter = getSelectedValues(&#x27;university-filter&#x27;);
+  const skillSetFilter = getSelectedValues(&#x27;skillset-filter&#x27;);
 
   return epics.filter(epic =&gt; {
     return epic.stories.some(story =&gt;
       (pmFilter.length === 0 || pmFilter.includes(story.productManager)) &amp;&amp;
       (sprintFilter.length === 0 || sprintFilter.includes(story.sprint)) &amp;&amp;
       (statusFilter.length === 0 || statusFilter.includes(story.status)) &amp;&amp;
-      (universityFilter.length === 0 || universityFilter.includes(story.university))
+      (universityFilter.length === 0 || universityFilter.includes(story.university)) &amp;&amp;
+      (skillSetFilter.length === 0 || skillSetFilter.includes(story.skillSet))
     );
   });
-}
+  }
 
   function getSelectedValues(filterId) {
     const selected = Array.from(document.getElementById(filterId).selectedOptions).map(opt =&gt; opt.value);
@@ -1162,6 +1429,52 @@
     document.getElementById(&quot;epic-details&quot;).innerHTML = &quot;&quot;;
   }
 
+  function getGlobalSelectedValuesForField(field) {
+    const globalFieldMap = {
+      productManager: &#x27;pm-filter&#x27;,
+      sprint: &#x27;sprint-filter&#x27;,
+      status: &#x27;status-filter&#x27;,
+      university: &#x27;university-filter&#x27;,
+      skillSet: &#x27;skillset-filter&#x27;
+    };
+    const globalId = globalFieldMap[field];
+    if (!globalId) return [];
+    return getSelectedValues(globalId);
+  }
+
+  function getEffectiveEpicSelections(epic) {
+    const fields = [&quot;productManager&quot;, &quot;sprint&quot;, &quot;status&quot;, &quot;university&quot;, &quot;skillSet&quot;];
+    const epicSelections = epicFilterSelections[epic.id] || {};
+    const effectiveSelections = {};
+
+    fields.forEach(field =&gt; {
+      const values = Array.from(new Set(epic.stories.map(s =&gt; s[field]))).filter(v =&gt; v &amp;&amp; v !== &quot;&quot;);
+      const hasEpicOverride = Object.prototype.hasOwnProperty.call(epicSelections, field);
+      effectiveSelections[field] = hasEpicOverride
+        ? (epicSelections[field] || [])
+        : getGlobalSelectedValuesForField(field).filter(v =&gt; values.includes(v));
+    });
+
+    return effectiveSelections;
+  }
+
+  function applySelectionsToStories(stories, selections) {
+    const selected = selections || {};
+    const pmFilter = selected.productManager || [];
+    const sprintFilter = selected.sprint || [];
+    const statusFilter = selected.status || [];
+    const universityFilter = selected.university || [];
+    const skillSetFilter = selected.skillSet || [];
+
+    return stories.filter(story =&gt;
+      (pmFilter.length === 0 || pmFilter.includes(story.productManager)) &amp;&amp;
+      (sprintFilter.length === 0 || sprintFilter.includes(story.sprint)) &amp;&amp;
+      (statusFilter.length === 0 || statusFilter.includes(story.status)) &amp;&amp;
+      (universityFilter.length === 0 || universityFilter.includes(story.university)) &amp;&amp;
+      (skillSetFilter.length === 0 || skillSetFilter.includes(story.skillSet))
+    );
+  }
+
   function renderDetails() {
     const container = document.getElementById(&quot;epic-details&quot;);
     container.innerHTML = &quot;&quot;;
@@ -1174,6 +1487,7 @@
     selectedEpics.forEach(id =&gt; {
       const epic = epics.find(e =&gt; e.id === id);
       if (!epic) return;
+      const effectiveSelections = getEffectiveEpicSelections(epic);
 
       const dueDate = epic.dueDate ? convertJiraDate(epic.dueDate) : &quot;No due date&quot;;
 
@@ -1193,56 +1507,9 @@
         &lt;/button&gt;
       `;
 
-      let tableRows = epic.stories.map(s =&gt; `
-        &lt;tr class=&quot;hover:bg-emerald-50/30 transition-all duration-200 border-b border-gray-100&quot;&gt;
-          &lt;td class=&quot;px-6 py-4&quot;&gt;
-            &lt;div class=&quot;flex items-center gap-2&quot;&gt;
-              &lt;svg class=&quot;w-4 h-4 text-emerald-600 flex-shrink-0&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
-                &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z&quot;&gt;&lt;/path&gt;
-              &lt;/svg&gt;
-              &lt;span class=&quot;font-semibold text-emerald-900&quot;&gt;${s.issueKey || &#x27;-&#x27;}&lt;/span&gt;
-            &lt;/div&gt;
-          &lt;/td&gt;
-          &lt;td class=&quot;px-6 py-4&quot;&gt;
-            &lt;div class=&quot;text-gray-800 font-medium max-w-md&quot;&gt;${s.summary || &#x27;-&#x27;}&lt;/div&gt;
-          &lt;/td&gt;
-          &lt;td class=&quot;px-6 py-4&quot;&gt;
-            &lt;div class=&quot;flex items-center gap-2 text-gray-700&quot;&gt;
-              &lt;svg class=&quot;w-4 h-4 text-gray-400&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
-                &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z&quot;&gt;&lt;/path&gt;
-              &lt;/svg&gt;
-              &lt;span&gt;${s.sprint || &#x27;Not Assigned&#x27;}&lt;/span&gt;
-            &lt;/div&gt;
-          &lt;/td&gt;
-          &lt;td class=&quot;px-6 py-4&quot;&gt;
-            &lt;span class=&quot;inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(s.status)}&quot;&gt;${s.status || &#x27;Not Assigned&#x27;}&lt;/span&gt;
-          &lt;/td&gt;
-          &lt;td class=&quot;px-6 py-4 text-center&quot;&gt;
-            &lt;div class=&quot;inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 rounded-lg&quot;&gt;
-              &lt;svg class=&quot;w-4 h-4 text-emerald-700&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
-                &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z&quot;&gt;&lt;/path&gt;
-              &lt;/svg&gt;
-              &lt;span class=&quot;font-bold text-emerald-800&quot;&gt;${s.storyPoints || 0}&lt;/span&gt;
-            &lt;/div&gt;
-          &lt;/td&gt;
-          &lt;td class=&quot;px-6 py-4&quot;&gt;
-            &lt;div class=&quot;flex items-center gap-2 text-gray-600&quot;&gt;
-              &lt;svg class=&quot;w-4 h-4 text-gray-400&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
-                &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4&quot;&gt;&lt;/path&gt;
-              &lt;/svg&gt;
-              &lt;span&gt;${s.university || &#x27;Not Assigned&#x27;}&lt;/span&gt;
-            &lt;/div&gt;
-          &lt;/td&gt;
-          &lt;td class=&quot;px-6 py-4&quot;&gt;
-            &lt;div class=&quot;flex items-center gap-2 text-gray-600&quot;&gt;
-              &lt;svg class=&quot;w-4 h-4 text-gray-400&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
-                &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z&quot;&gt;&lt;/path&gt;
-              &lt;/svg&gt;
-              &lt;span&gt;${s.skillSet || &#x27;Not Assigned&#x27;}&lt;/span&gt;
-            &lt;/div&gt;
-          &lt;/td&gt;
-        &lt;/tr&gt;
-      `).join(&quot;&quot;);
+      const storiesForTable = applySelectionsToStories(epic.stories, effectiveSelections);
+      filteredStoriesByEpic[id] = storiesForTable.slice();
+      let tableRows = renderStoryTableRows(storiesForTable);
 
       const table = `
         &lt;div class=&quot;overflow-hidden rounded-2xl shadow-xl border border-emerald-100 mb-8 bg-white&quot;&gt;
@@ -1337,7 +1604,13 @@
 
   function createFilterDropdown(label, field, epic) {
     const values = Array.from(new Set(epic.stories.map(s =&gt; s[field]))).filter(v =&gt; v &amp;&amp; v !== &quot;&quot;);
-    const options = values.map(v =&gt; `&lt;option value=&quot;${v}&quot;&gt;${v}&lt;/option&gt;`).join(&quot;&quot;);
+    const effectiveSelections = getEffectiveEpicSelections(epic);
+    const selectedValues = effectiveSelections[field] || [];
+    const allSelected = selectedValues.length === 0;
+    const options = values.map(v =&gt; {
+      const isSelected = selectedValues.includes(v) ? ' selected' : '';
+      return `&lt;option value=&quot;${v}&quot;${isSelected}&gt;${v}&lt;/option&gt;`;
+    }).join(&quot;&quot;);
     const icons = {
       productManager: &#x27;M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z&#x27;,
       sprint: &#x27;M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z&#x27;,
@@ -1354,34 +1627,18 @@
           &lt;/svg&gt;
           ${label}
         &lt;/label&gt;
-        &lt;select id=&quot;${field}-filter-${epic.id}&quot; class=&quot;filter-select w-full border-2 border-emerald-200 p-2.5 rounded-lg bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200 text-sm&quot; multiple&gt;
-          &lt;option value=&quot;All&quot; selected&gt;All&lt;/option&gt;
-          ${options}
-        &lt;/select&gt;
+        &lt;div class=&quot;filter-select-shell&quot;&gt;
+          &lt;select id=&quot;${field}-filter-${epic.id}&quot; class=&quot;filter-select w-full border-2 border-emerald-200 p-2.5 rounded-lg bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200 text-sm&quot; multiple&gt;
+            &lt;option value=&quot;All&quot;${allSelected ? ' selected' : ''}&gt;All&lt;/option&gt;
+            ${options}
+          &lt;/select&gt;
+        &lt;/div&gt;
       &lt;/div&gt;
     `;
   }
 
-  function filterStories(epicId) {
-    const epic = epics.find(e =&gt; e.id === epicId);
-    if (!epic) return;
-
-    const pmFilter = getSelectedValues(`productManager-filter-${epicId}`);
-    const sprintFilter = getSelectedValues(`sprint-filter-${epicId}`);
-    const statusFilter = getSelectedValues(`status-filter-${epicId}`);
-    const universityFilter = getSelectedValues(`university-filter-${epicId}`);
-    const skillSetFilter = getSelectedValues(`skillSet-filter-${epicId}`);
-
-    const filtered = epic.stories.filter(story =&gt;
-      (pmFilter.length === 0 || pmFilter.includes(story.productManager)) &amp;&amp;
-      (sprintFilter.length === 0 || sprintFilter.includes(story.sprint)) &amp;&amp;
-      (statusFilter.length === 0 || statusFilter.includes(story.status)) &amp;&amp;
-      (universityFilter.length === 0 || universityFilter.includes(story.university)) &amp;&amp;
-      (skillSetFilter.length === 0 || skillSetFilter.includes(story.skillSet))
-    );
-
-    const tableBody = document.getElementById(`story-table-${epicId}`);
-    tableBody.innerHTML = filtered.map(s =&gt; `
+  function renderStoryTableRows(stories) {
+    return stories.map(s =&gt; `
       &lt;tr class=&quot;hover:bg-emerald-50/30 transition-all duration-200 border-b border-gray-100&quot;&gt;
         &lt;td class=&quot;px-6 py-4&quot;&gt;
           &lt;div class=&quot;flex items-center gap-2&quot;&gt;
@@ -1433,6 +1690,32 @@
     `).join(&quot;&quot;);
   }
 
+  function filterStories(epicId) {
+    const epic = epics.find(e =&gt; e.id === epicId);
+    if (!epic) return;
+
+    const pmFilter = getSelectedValues(`productManager-filter-${epicId}`);
+    const sprintFilter = getSelectedValues(`sprint-filter-${epicId}`);
+    const statusFilter = getSelectedValues(`status-filter-${epicId}`);
+    const universityFilter = getSelectedValues(`university-filter-${epicId}`);
+    const skillSetFilter = getSelectedValues(`skillSet-filter-${epicId}`);
+
+    epicFilterSelections[epicId] = {
+      productManager: pmFilter,
+      sprint: sprintFilter,
+      status: statusFilter,
+      university: universityFilter,
+      skillSet: skillSetFilter
+    };
+
+    const filtered = applySelectionsToStories(epic.stories, epicFilterSelections[epicId]);
+
+    filteredStoriesByEpic[epicId] = filtered.slice();
+    const tableBody = document.getElementById(`story-table-${epicId}`);
+    if (!tableBody) return;
+    tableBody.innerHTML = renderStoryTableRows(filteredStoriesByEpic[epicId]);
+  }
+
   function sortTable(epicId, field) {
     const epic = epics.find(e =&gt; e.id === epicId);
     if (!epic) return;
@@ -1440,7 +1723,9 @@
     const key = `${epicId}-${field}`;
     const current = sortStates[key] || &#x27;asc&#x27;;
 
-    epic.stories.sort((a, b) =&gt; {
+    const storiesToSort = filteredStoriesByEpic[epicId] || epic.stories;
+
+    storiesToSort.sort((a, b) =&gt; {
       let valA = a[field] ?? &quot;&quot;;
       let valB = b[field] ?? &quot;&quot;;
 
@@ -1460,56 +1745,8 @@
     sortStates[key] = current === &#x27;asc&#x27; ? &#x27;desc&#x27; : &#x27;asc&#x27;;
 
     const tableBody = document.getElementById(`story-table-${epicId}`);
-    tableBody.innerHTML = epic.stories.map(s =&gt; `
-      &lt;tr class=&quot;hover:bg-emerald-50/30 transition-all duration-200 border-b border-gray-100&quot;&gt;
-        &lt;td class=&quot;px-6 py-4&quot;&gt;
-          &lt;div class=&quot;flex items-center gap-2&quot;&gt;
-            &lt;svg class=&quot;w-4 h-4 text-emerald-600 flex-shrink-0&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
-              &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z&quot;&gt;&lt;/path&gt;
-            &lt;/svg&gt;
-            &lt;span class=&quot;font-semibold text-emerald-900&quot;&gt;${s.issueKey || &#x27;-&#x27;}&lt;/span&gt;
-          &lt;/div&gt;
-        &lt;/td&gt;
-        &lt;td class=&quot;px-6 py-4&quot;&gt;
-          &lt;div class=&quot;text-gray-800 font-medium max-w-md&quot;&gt;${s.summary || &#x27;-&#x27;}&lt;/div&gt;
-        &lt;/td&gt;
-        &lt;td class=&quot;px-6 py-4&quot;&gt;
-          &lt;div class=&quot;flex items-center gap-2 text-gray-700&quot;&gt;
-            &lt;svg class=&quot;w-4 h-4 text-gray-400&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
-              &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z&quot;&gt;&lt;/path&gt;
-            &lt;/svg&gt;
-            &lt;span&gt;${s.sprint || &#x27;Not Assigned&#x27;}&lt;/span&gt;
-          &lt;/div&gt;
-        &lt;/td&gt;
-        &lt;td class=&quot;px-6 py-4&quot;&gt;
-          &lt;span class=&quot;inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(s.status)}&quot;&gt;${s.status || &#x27;Not Assigned&#x27;}&lt;/span&gt;
-        &lt;/td&gt;
-        &lt;td class=&quot;px-6 py-4 text-center&quot;&gt;
-          &lt;div class=&quot;inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 rounded-lg&quot;&gt;
-            &lt;svg class=&quot;w-4 h-4 text-emerald-700&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
-              &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z&quot;&gt;&lt;/path&gt;
-            &lt;/svg&gt;
-            &lt;span class=&quot;font-bold text-emerald-800&quot;&gt;${s.storyPoints || 0}&lt;/span&gt;
-          &lt;/div&gt;
-        &lt;/td&gt;
-        &lt;td class=&quot;px-6 py-4&quot;&gt;
-          &lt;div class=&quot;flex items-center gap-2 text-gray-600&quot;&gt;
-            &lt;svg class=&quot;w-4 h-4 text-gray-400&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
-              &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4&quot;&gt;&lt;/path&gt;
-            &lt;/svg&gt;
-            &lt;span&gt;${s.university || &#x27;Not Assigned&#x27;}&lt;/span&gt;
-          &lt;/div&gt;
-        &lt;/td&gt;
-        &lt;td class=&quot;px-6 py-4&quot;&gt;
-          &lt;div class=&quot;flex items-center gap-2 text-gray-600&quot;&gt;
-            &lt;svg class=&quot;w-4 h-4 text-gray-400&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
-              &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z&quot;&gt;&lt;/path&gt;
-            &lt;/svg&gt;
-            &lt;span&gt;${s.skillSet || &#x27;Not Assigned&#x27;}&lt;/span&gt;
-          &lt;/div&gt;
-        &lt;/td&gt;
-      &lt;/tr&gt;
-    `).join(&quot;&quot;);
+    if (!tableBody) return;
+    tableBody.innerHTML = renderStoryTableRows(storiesToSort);
   }
 &lt;/script&gt;
 
@@ -1685,90 +1922,85 @@
       background: linear-gradient(180deg, #0B8F6A, #10b981);
       border-radius: 2px;
     }
-    /* Tom Select custom styling - Enhanced Emerald Theme */
-    .ts-control {
-      padding: 0.75rem 1rem !important;
-      min-height: 3rem !important;
-      font-size: 0.875rem !important;
-      border: 2px solid #d1fae5 !important;
-      border-radius: 0.75rem !important;
-      background: white !important;
-      transition: all 0.3s ease !important;
-      box-shadow: 0 2px 4px rgba(11, 143, 106, 0.05) !important;
+    /* Native multi-select styling for Sprint with IssueType filters */
+    .filter-select-shell {
+      border: 2px solid #86efac;
+      border-radius: 16px;
+      background: #ffffff;
+      overflow: hidden;
+      box-sizing: border-box;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    .ts-control:hover {
-      border-color: #86efac !important;
-      box-shadow: 0 4px 8px rgba(11, 143, 106, 0.1) !important;
+    .filter-select-shell:focus-within {
+      border-color: #6ee7b7;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16);
     }
-    .ts-control.focus {
-      border-color: #0B8F6A !important;
-      box-shadow: 0 0 0 4px rgba(11, 143, 106, 0.15) !important;
+    .filter-select {
+      appearance: listbox;
+      -webkit-appearance: listbox;
+      -moz-appearance: listbox;
+      background-color: #ffffff;
+      border: 0 !important;
+      border-radius: 0 !important;
+      padding: 8px 10px !important;
+      color: #0f172a;
       outline: none !important;
+      box-shadow: none !important;
+      line-height: 1.2;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-gutter: stable;
     }
-    .ts-control .item {
-      background: linear-gradient(135deg, #0B8F6A, #10b981) !important;
-      color: white !important;
-      border-radius: 0.5rem !important;
-      padding: 0.375rem 0.75rem !important;
-      font-size: 0.8125rem !important;
-      font-weight: 500 !important;
-      margin: 0 0.375rem 0.375rem 0 !important;
-      box-shadow: 0 2px 6px rgba(11, 143, 106, 0.25) !important;
-      border: none !important;
-      transition: all 0.2s ease !important;
+    .filter-select:focus,
+    .filter-select:focus-visible {
+      outline: none !important;
+      border: 0 !important;
+      box-shadow: none !important;
     }
-    .ts-control .item:hover {
-      transform: translateY(-1px) !important;
-      box-shadow: 0 4px 8px rgba(11, 143, 106, 0.3) !important;
+    .filter-select option {
+      background: #ffffff;
+      color: #0f172a;
+      padding: 10px 12px;
+      font-size: 0.82rem;
+      line-height: 1.2;
+      user-select: none;
+      white-space: nowrap;
     }
-    .ts-control .item.active {
-      background: linear-gradient(135deg, #086E53, #0B8F6A) !important;
-    }
-    .ts-control input {
+    .filter-select option:checked {
+      background: linear-gradient(#e7eef7, #e7eef7) !important;
       color: #0f172a !important;
-      font-size: 0.875rem !important;
+      -webkit-text-fill-color: #0f172a !important;
+      font-weight: 700 !important;
     }
-    .ts-dropdown {
-      background: white !important;
-      font-size: 0.875rem !important;
-      border: 2px solid #d1fae5 !important;
-      max-height: 18rem !important;
-      overflow-y: auto !important;
-      box-shadow: 0 10px 25px -5px rgba(11, 143, 106, 0.15), 0 4px 6px -2px rgba(11, 143, 106, 0.1) !important;
-      border-radius: 0.75rem !important;
-      margin-top: 0.5rem !important;
+    .filter-select option:checked:hover,
+    .filter-select option:checked:focus {
+      background: linear-gradient(#dce6f3, #dce6f3) !important;
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
     }
-    .ts-dropdown .option {
-      padding: 0.75rem 1rem !important;
-      transition: all 0.2s ease !important;
-      border-radius: 0.5rem !important;
-      margin: 0.25rem 0.5rem !important;
+    .filter-select option:hover,
+    .filter-select option:focus {
+      background: linear-gradient(#f2f6fb, #f2f6fb) !important;
+      color: #0f172a !important;
     }
-    .ts-dropdown .option:hover {
-      background: linear-gradient(135deg, #E7F6F1, #f0fdf4) !important;
-      color: #086E53 !important;
-      transform: translateX(4px) !important;
-    }
-    .ts-dropdown .option.active {
-      background: linear-gradient(135deg, #E7F6F1, #d1fae5) !important;
-      color: #086E53 !important;
-      font-weight: 600 !important;
-    }
-    .ts-dropdown .option.selected {
-      background: linear-gradient(135deg, #0B8F6A, #10b981) !important;
-      color: white !important;
-      font-weight: 600 !important;
-    }
-    .ts-dropdown .option.selected:hover {
-      background: linear-gradient(135deg, #086E53, #0B8F6A) !important;
-      transform: translateX(4px) !important;
+    /* Strong override for native multiple-select blue highlight */
+    select.filter-select[multiple] option:checked,
+    select.filter-select[multiple] option:checked:hover,
+    select.filter-select[multiple] option:checked:focus {
+      background-color: #e7eef7 !important;
+      background-image: linear-gradient(#e7eef7, #e7eef7) !important;
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
     }
     /* Filter group styling */
     .filter-group {
       transition: all 0.2s ease;
     }
     .filter-group:hover {
-      transform: translateY(-2px);
+      transform: none;
     }
     /* Enhanced table styling - Emerald Theme */
     table {
@@ -1855,11 +2087,11 @@
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;hidden&quot; id=&quot;dashboard-content&quot;&gt;
-&lt;!-- Filters --&gt;
-&lt;div class=&quot;bg-gradient-to-br from-white to-emerald-50/30 rounded-2xl shadow-lg p-6 mb-8 border border-emerald-100&quot;&gt;
+&lt;!-- Global Filters --&gt;
+&lt;section class=&quot;filter-section p-6 mb-8 bg-white rounded-2xl shadow-sm border border-emerald-100&quot;&gt;
 &lt;div class=&quot;flex items-center gap-3 mb-6&quot;&gt;
 &lt;div class=&quot;w-1 h-8 bg-gradient-to-b from-emerald-600 to-teal-600 rounded-full&quot;&gt;&lt;/div&gt;
-&lt;h2 class=&quot;text-xl font-bold text-emerald-800&quot;&gt;Filters&lt;/h2&gt;
+&lt;h2 class=&quot;text-xl font-bold text-emerald-800&quot;&gt;Global Filters&lt;/h2&gt;
 &lt;/div&gt;
 &lt;div class=&quot;grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5&quot;&gt;
 &lt;div class=&quot;filter-group&quot;&gt;
@@ -1867,35 +2099,35 @@
 &lt;svg class=&quot;w-4 h-4&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
 Sprint
 &lt;/label&gt;
-&lt;select id=&quot;sprint-filter&quot; multiple=&quot;&quot; placeholder=&quot;Select Sprints...&quot;&gt;&lt;/select&gt;
+&lt;div class=&quot;filter-select-shell&quot;&gt;&lt;select id=&quot;sprint-filter&quot; class=&quot;filter-select block w-full p-3 rounded-xl bg-white transition-all duration-200&quot; multiple=&quot;&quot; size=&quot;6&quot;&gt;&lt;/select&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;filter-group&quot;&gt;
 &lt;label class=&quot;block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2&quot; for=&quot;epic-filter&quot;&gt;
 &lt;svg class=&quot;w-4 h-4&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
 Epic
 &lt;/label&gt;
-&lt;select id=&quot;epic-filter&quot; multiple=&quot;&quot; placeholder=&quot;Select Epics...&quot;&gt;&lt;/select&gt;
+&lt;div class=&quot;filter-select-shell&quot;&gt;&lt;select id=&quot;epic-filter&quot; class=&quot;filter-select block w-full p-3 rounded-xl bg-white transition-all duration-200&quot; multiple=&quot;&quot; size=&quot;6&quot;&gt;&lt;/select&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;filter-group&quot;&gt;
 &lt;label class=&quot;block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2&quot; for=&quot;status-filter&quot;&gt;
 &lt;svg class=&quot;w-4 h-4&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
 Status
 &lt;/label&gt;
-&lt;select id=&quot;status-filter&quot; multiple=&quot;&quot; placeholder=&quot;Select Statuses...&quot;&gt;&lt;/select&gt;
+&lt;div class=&quot;filter-select-shell&quot;&gt;&lt;select id=&quot;status-filter&quot; class=&quot;filter-select block w-full p-3 rounded-xl bg-white transition-all duration-200&quot; multiple=&quot;&quot; size=&quot;6&quot;&gt;&lt;/select&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;filter-group&quot;&gt;
 &lt;label class=&quot;block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2&quot; for=&quot;pm-filter&quot;&gt;
 &lt;svg class=&quot;w-4 h-4&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
 Product Owner
 &lt;/label&gt;
-&lt;select id=&quot;pm-filter&quot; multiple=&quot;&quot; placeholder=&quot;Select Product Owners...&quot;&gt;&lt;/select&gt;
+&lt;div class=&quot;filter-select-shell&quot;&gt;&lt;select id=&quot;pm-filter&quot; class=&quot;filter-select block w-full p-3 rounded-xl bg-white transition-all duration-200&quot; multiple=&quot;&quot; size=&quot;6&quot;&gt;&lt;/select&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;filter-group&quot;&gt;
 &lt;label class=&quot;block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2&quot; for=&quot;issue-type-filter&quot;&gt;
 &lt;svg class=&quot;w-4 h-4&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
 Issue Type
 &lt;/label&gt;
-&lt;select id=&quot;issue-type-filter&quot; multiple=&quot;&quot; placeholder=&quot;Select Issue Types...&quot;&gt;&lt;/select&gt;
+&lt;div class=&quot;filter-select-shell&quot;&gt;&lt;select id=&quot;issue-type-filter&quot; class=&quot;filter-select block w-full p-3 rounded-xl bg-white transition-all duration-200&quot; multiple=&quot;&quot; size=&quot;6&quot;&gt;&lt;/select&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;mt-6 flex justify-end gap-3&quot;&gt;
@@ -1903,12 +2135,12 @@ Issue Type
 &lt;svg class=&quot;w-5 h-5&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
 Apply Filters
         &lt;/button&gt;
-&lt;button class=&quot;bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400 font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 flex items-center gap-2&quot; id=&quot;reset-filters&quot;&gt;
+&lt;button class=&quot;hidden bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400 font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 flex items-center gap-2&quot; id=&quot;reset-filters&quot;&gt;
 &lt;svg class=&quot;w-5 h-5&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
 Reset
         &lt;/button&gt;
 &lt;/div&gt;
-&lt;/div&gt;
+&lt;/section&gt;
 &lt;!-- Key Metrics --&gt;
 &lt;div class=&quot;mb-10&quot; id=&quot;metrics-section&quot;&gt;
 &lt;h2 class=&quot;text-2xl font-bold text-gray-800 mb-6&quot;&gt;Key Metrics&lt;/h2&gt;
@@ -1955,6 +2187,10 @@ Reset
 &lt;h3 class=&quot;chart-title&quot;&gt;Issues by Sprint&lt;/h3&gt;
 &lt;canvas height=&quot;280&quot; id=&quot;sprintChart&quot;&gt;&lt;/canvas&gt;
 &lt;/div&gt;
+&lt;div class=&quot;chart-container&quot;&gt;
+&lt;h3 class=&quot;chart-title&quot;&gt;QA Issues: Test Case Doc by Sprint (&lt;span id=&quot;qaDocTotalIssues&quot;&gt;Attached: 0 | Not Attached: 0 | Total: 0&lt;/span&gt;)&lt;/h3&gt;
+&lt;canvas height=&quot;280&quot; id=&quot;qaDocStatusChart&quot;&gt;&lt;/canvas&gt;
+&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;!-- Tabs Navigation --&gt;
@@ -1986,11 +2222,11 @@ Reset
 &lt;table class=&quot;min-w-full&quot;&gt;
 &lt;thead&gt;
 &lt;tr&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Sprint&lt;/th&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Total Stories&lt;/th&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Unique Epics&lt;/th&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Total Story Points&lt;/th&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Assignees&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Sprint&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Total Stories&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Unique Epics&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Total Story Points&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Assignees&lt;/th&gt;
 &lt;/tr&gt;
 &lt;/thead&gt;
 &lt;tbody class=&quot;bg-white&quot; id=&quot;sprint-table-body&quot;&gt;&lt;/tbody&gt;
@@ -2005,10 +2241,10 @@ Reset
 &lt;table class=&quot;min-w-full&quot;&gt;
 &lt;thead&gt;
 &lt;tr&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Epic&lt;/th&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Total Stories&lt;/th&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Total Story Points&lt;/th&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Sprints&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Epic&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Total Stories&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Total Story Points&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Sprints&lt;/th&gt;
 &lt;/tr&gt;
 &lt;/thead&gt;
 &lt;tbody class=&quot;bg-white&quot; id=&quot;epic-table-body&quot;&gt;&lt;/tbody&gt;
@@ -2023,10 +2259,10 @@ Reset
 &lt;table class=&quot;min-w-full&quot;&gt;
 &lt;thead&gt;
 &lt;tr&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Status&lt;/th&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Total Issues&lt;/th&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Story Points&lt;/th&gt;
-&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortTable(this)&quot;&gt;Epics&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Status&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Total Issues&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Story Points&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Epics&lt;/th&gt;
 &lt;/tr&gt;
 &lt;/thead&gt;
 &lt;tbody class=&quot;bg-white&quot; id=&quot;status-table-body&quot;&gt;&lt;/tbody&gt;
@@ -2131,31 +2367,55 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   applyFiltersBtn.addEventListener(&#x27;click&#x27;, applyFilters);
   resetFiltersBtn.addEventListener(&#x27;click&#x27;, resetFilters);
 
-  sprintSelect = new TomSelect(&#x27;#sprint-filter&#x27;, {
-    plugins: [&#x27;remove_button&#x27;],
-    maxItems: null,
-    dropdownParent: &#x27;body&#x27;
-  });
-  epicSelect = new TomSelect(&#x27;#epic-filter&#x27;, {
-    plugins: [&#x27;remove_button&#x27;],
-    maxItems: null,
-    dropdownParent: &#x27;body&#x27;
-  });
-  statusSelect = new TomSelect(&#x27;#status-filter&#x27;, {
-    plugins: [&#x27;remove_button&#x27;],
-    maxItems: null,
-    dropdownParent: &#x27;body&#x27;
-  });
-  pmSelect = new TomSelect(&#x27;#pm-filter&#x27;, {
-    plugins: [&#x27;remove_button&#x27;],
-    maxItems: null,
-    dropdownParent: &#x27;body&#x27;
-  });
-  issueTypeSelect = new TomSelect(&#x27;#issue-type-filter&#x27;, {
-    plugins: [&#x27;remove_button&#x27;],
-    maxItems: null,
-    dropdownParent: &#x27;body&#x27;
-  });
+  sprintSelect = document.getElementById(&#x27;sprint-filter&#x27;);
+  epicSelect = document.getElementById(&#x27;epic-filter&#x27;);
+  statusSelect = document.getElementById(&#x27;status-filter&#x27;);
+  pmSelect = document.getElementById(&#x27;pm-filter&#x27;);
+  issueTypeSelect = document.getElementById(&#x27;issue-type-filter&#x27;);
+
+  function suppressListboxTextSelection(selectEl) {
+    if (!selectEl) return;
+    const clearSelection = () =&gt; {
+      const sel = window.getSelection &amp;&amp; window.getSelection();
+      if (sel &amp;&amp; sel.rangeCount) sel.removeAllRanges();
+    };
+    selectEl.addEventListener(&#x27;selectstart&#x27;, (e) =&gt; e.preventDefault());
+    selectEl.addEventListener(&#x27;mouseup&#x27;, () =&gt; setTimeout(clearSelection, 0));
+    selectEl.addEventListener(&#x27;keyup&#x27;, clearSelection);
+    selectEl.addEventListener(&#x27;change&#x27;, clearSelection);
+  }
+
+  suppressListboxTextSelection(sprintSelect);
+  suppressListboxTextSelection(epicSelect);
+  suppressListboxTextSelection(statusSelect);
+  suppressListboxTextSelection(pmSelect);
+  suppressListboxTextSelection(issueTypeSelect);
+
+  function clearSelectOptions(selectEl) {
+    if (selectEl) selectEl.innerHTML = &#x27;&#x27;;
+  }
+
+  function addSelectOption(selectEl, value, text, selected = false) {
+    if (!selectEl) return;
+    const option = document.createElement(&#x27;option&#x27;);
+    option.value = value;
+    option.textContent = text;
+    option.selected = selected;
+    selectEl.appendChild(option);
+  }
+
+  function getSelectedValues(selectEl) {
+    if (!selectEl) return [];
+    return Array.from(selectEl.selectedOptions).map((opt) =&gt; opt.value);
+  }
+
+  function setSelectedValues(selectEl, values) {
+    if (!selectEl) return;
+    const selectedSet = new Set(values);
+    Array.from(selectEl.options).forEach((opt) =&gt; {
+      opt.selected = selectedSet.has(opt.value);
+    });
+  }
 
   function handleFileSelect(e) {
     if (e.target.files.length) handleFiles(e.target.files);
@@ -2396,46 +2656,37 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   }
 
   function populateFilters(metrics) {
-    sprintSelect.clear(true);
-    epicSelect.clear(true);
-    statusSelect.clear(true);
-    pmSelect.clear(true);
-    issueTypeSelect.clear(true);
+    clearSelectOptions(sprintSelect);
+    clearSelectOptions(epicSelect);
+    clearSelectOptions(statusSelect);
+    clearSelectOptions(pmSelect);
+    clearSelectOptions(issueTypeSelect);
 
-    sprintSelect.addOption({ value: &quot;all&quot;, text: &quot;All Sprints&quot; });
-    epicSelect.addOption({ value: &quot;all&quot;, text: &quot;All Epics&quot; });
-    statusSelect.addOption({ value: &quot;all&quot;, text: &quot;All Statuses&quot; });
-    pmSelect.addOption({ value: &quot;all&quot;, text: &quot;All Product Owners&quot; });
-    issueTypeSelect.addOption({ value: &quot;all&quot;, text: &quot;All Issue Types&quot; });
+    addSelectOption(sprintSelect, &quot;all&quot;, &quot;All Sprints&quot;, true);
+    addSelectOption(epicSelect, &quot;all&quot;, &quot;All Epics&quot;, true);
+    addSelectOption(statusSelect, &quot;all&quot;, &quot;All Statuses&quot;, true);
+    addSelectOption(pmSelect, &quot;all&quot;, &quot;All Product Owners&quot;, true);
+    addSelectOption(issueTypeSelect, &quot;all&quot;, &quot;All Issue Types&quot;, true);
 
-    metrics.uniqueSprints.forEach(s =&gt; {
-      sprintSelect.addOption({ value: s, text: s });
-    });
-    metrics.uniqueEpics.forEach((name, id) =&gt; {
-      epicSelect.addOption({ value: id, text: name });
-    });
-    metrics.uniqueStatuses.forEach(st =&gt; {
-      statusSelect.addOption({ value: st, text: st });
-    });
-    metrics.uniquePMs.forEach(pm =&gt; {
-      pmSelect.addOption({ value: pm, text: pm });
-    });
+    metrics.uniqueSprints.forEach((s) =&gt; addSelectOption(sprintSelect, s, s));
+    metrics.uniqueEpics.forEach((name, id) =&gt; addSelectOption(epicSelect, id, name));
+    metrics.uniqueStatuses.forEach((st) =&gt; addSelectOption(statusSelect, st, st));
+    metrics.uniquePMs.forEach((pm) =&gt; addSelectOption(pmSelect, pm, pm));
+    metrics.uniqueIssueTypes.forEach((t) =&gt; addSelectOption(issueTypeSelect, t, t));
 
-    sprintSelect.setValue([&quot;all&quot;]);
-    epicSelect.setValue([&quot;all&quot;]);
-    statusSelect.setValue([&quot;all&quot;]);
-    pmSelect.setValue([&quot;all&quot;]);
-    issueTypeSelect.setValue([&quot;all&quot;]);
-    metrics.uniqueIssueTypes.forEach(t =&gt; { issueTypeSelect.addOption({ value: t, text: t }); });
-    issueTypeSelect.setValue([&quot;all&quot;]);
+    setSelectedValues(sprintSelect, [&quot;all&quot;]);
+    setSelectedValues(epicSelect, [&quot;all&quot;]);
+    setSelectedValues(statusSelect, [&quot;all&quot;]);
+    setSelectedValues(pmSelect, [&quot;all&quot;]);
+    setSelectedValues(issueTypeSelect, [&quot;all&quot;]);
   }
 
   function applyFilters() {
-    const sprints = sprintSelect.getValue();
-    const epics = epicSelect.getValue();
-    const statuses = statusSelect.getValue();
-    const pms = pmSelect.getValue();
-    const issueTypes = issueTypeSelect.getValue();
+    const sprints = getSelectedValues(sprintSelect);
+    const epics = getSelectedValues(epicSelect);
+    const statuses = getSelectedValues(statusSelect);
+    const pms = getSelectedValues(pmSelect);
+    const issueTypes = getSelectedValues(issueTypeSelect);
 
     filteredData = jiraData.filter(issue =&gt; {
       let matchS = sprints.includes(&#x27;all&#x27;) || (issue.Sprint &amp;&amp; sprints.includes(issue.Sprint));
@@ -2454,13 +2705,11 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   }
 
   function resetFilters() {
-    sprintSelect.setValue([&quot;all&quot;]);
-    epicSelect.setValue([&quot;all&quot;]);
-    statusSelect.setValue([&quot;all&quot;]);
-    pmSelect.setValue([&quot;all&quot;]);
-    issueTypeSelect.setValue([&quot;all&quot;]);
-    metrics.uniqueIssueTypes.forEach(t =&gt; { issueTypeSelect.addOption({ value: t, text: t }); });
-    issueTypeSelect.setValue([&quot;all&quot;]);
+    setSelectedValues(sprintSelect, [&quot;all&quot;]);
+    setSelectedValues(epicSelect, [&quot;all&quot;]);
+    setSelectedValues(statusSelect, [&quot;all&quot;]);
+    setSelectedValues(pmSelect, [&quot;all&quot;]);
+    setSelectedValues(issueTypeSelect, [&quot;all&quot;]);
     filteredData = [...jiraData];
     const metrics = calculateMetrics(jiraData);
     updateMetricsUI(metrics);
@@ -2500,7 +2749,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   }
 
 
-  window.sortTable = function(header) {
+  window.sortOverviewTable = function(header) {
     const table = header.closest(&quot;table&quot;);
     const tbody = table.querySelector(&quot;tbody&quot;);
     const index = Array.from(header.parentNode.children).indexOf(header);
@@ -2553,7 +2802,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     let totalSP = 0;
     let totalAssignees = 0;
 
-    const selectedSprints = sprintSelect.getValue();
+    const selectedSprints = getSelectedValues(sprintSelect);
     metrics.sprintBreakdown.forEach((d, sprint) =&gt; {
       if (!selectedSprints.includes(&#x27;all&#x27;) &amp;&amp; !selectedSprints.includes(sprint)) {
         return;
@@ -2594,7 +2843,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     let totalSP = 0;
     let totalSprints = 0;
 
-    const selectedEpics = epicSelect.getValue();
+    const selectedEpics = getSelectedValues(epicSelect);
     metrics.epicBreakdown.forEach((d, id) =&gt; {
       if (!selectedEpics.includes(&#x27;all&#x27;) &amp;&amp; !selectedEpics.includes(id)) {
         return;
@@ -2632,7 +2881,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     let totalSP = 0;
     let totalEpics = 0;
 
-    const selectedStatuses = statusSelect.getValue();
+    const selectedStatuses = getSelectedValues(statusSelect);
     metrics.statusBreakdown.forEach((d, status) =&gt; {
       if (!selectedStatuses.includes(&#x27;all&#x27;) &amp;&amp; !selectedStatuses.includes(status)) {
         return;
@@ -2668,14 +2917,14 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     body.innerHTML = &#x27;&#x27;;
 
     const statuses = Array.from(metrics.uniqueStatuses);
-    const selectedSprints = sprintSelect.getValue();
+    const selectedSprints = getSelectedValues(sprintSelect);
 
     const headerRow = document.createElement(&#x27;tr&#x27;);
-    headerRow.innerHTML = &#x27;&lt;th onclick=&quot;sortTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;Sprint / Status&lt;/th&gt;&#x27;;
+    headerRow.innerHTML = &#x27;&lt;th onclick=&quot;sortOverviewTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;Sprint / Status&lt;/th&gt;&#x27;;
     statuses.forEach(st =&gt; {
-      headerRow.innerHTML += `&lt;th onclick=&quot;sortTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;${st}&lt;/th&gt;`;
+      headerRow.innerHTML += `&lt;th onclick=&quot;sortOverviewTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;${st}&lt;/th&gt;`;
     });
-    headerRow.innerHTML += &#x27;&lt;th onclick=&quot;sortTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;Total&lt;/th&gt;&#x27;;
+    headerRow.innerHTML += &#x27;&lt;th onclick=&quot;sortOverviewTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;Total&lt;/th&gt;&#x27;;
     header.appendChild(headerRow);
 
     let totalByStatus = new Map();
@@ -2718,14 +2967,14 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     body.innerHTML = &#x27;&#x27;;
 
     const statuses = Array.from(metrics.uniqueStatuses).sort();
-    const selectedEpics = epicSelect.getValue();
+    const selectedEpics = getSelectedValues(epicSelect);
 
     const headerRow = document.createElement(&#x27;tr&#x27;);
-    headerRow.innerHTML = &#x27;&lt;th onclick=&quot;sortTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;Epic&lt;/th&gt;&#x27;;
+    headerRow.innerHTML = &#x27;&lt;th onclick=&quot;sortOverviewTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;Epic&lt;/th&gt;&#x27;;
     statuses.forEach(st =&gt; {
-      headerRow.innerHTML += `&lt;th onclick=&quot;sortTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;${st}&lt;/th&gt;`;
+      headerRow.innerHTML += `&lt;th onclick=&quot;sortOverviewTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;${st}&lt;/th&gt;`;
     });
-    headerRow.innerHTML += &#x27;&lt;th onclick=&quot;sortTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;Total&lt;/th&gt;&#x27;;
+    headerRow.innerHTML += &#x27;&lt;th onclick=&quot;sortOverviewTable(this)&quot; class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot;&gt;Total&lt;/th&gt;&#x27;;
     header.appendChild(headerRow);
 
     let totalByStatus = new Map();
@@ -2764,6 +3013,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   function createCharts(metrics) {
     if (window.statusChartInstance) window.statusChartInstance.destroy();
     if (window.sprintChartInstance) window.sprintChartInstance.destroy();
+    if (window.qaDocStatusChartInstance) window.qaDocStatusChartInstance.destroy();
 
     const statusLabels = [];
     const statusCounts = [];
@@ -2860,12 +3110,27 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
       }
     });
 
-    const sprintLabels = [];
-    const sprintCounts = [];
-    metrics.sprintBreakdown.forEach((d, sprint) =&gt; {
-      sprintLabels.push(sprint);
-      sprintCounts.push(d.totalStories);
+    const sprintEntries = Array.from(metrics.sprintBreakdown.entries());
+    sprintEntries.sort((a, b) =&gt; {
+      const labelA = String(a[0] || &quot;&quot;);
+      const labelB = String(b[0] || &quot;&quot;);
+      const numA = (labelA.match(/\d+/) || [])[0];
+      const numB = (labelB.match(/\d+/) || [])[0];
+
+      if (numA !== undefined &amp;&amp; numB !== undefined) {
+        const diff = Number(numA) - Number(numB);
+        if (diff !== 0) return diff;
+      } else if (numA !== undefined) {
+        return -1;
+      } else if (numB !== undefined) {
+        return 1;
+      }
+
+      return labelA.localeCompare(labelB, undefined, { numeric: true, sensitivity: &quot;base&quot; });
     });
+
+    const sprintLabels = sprintEntries.map(([sprint]) =&gt; sprint);
+    const sprintCounts = sprintEntries.map(([, d]) =&gt; d.totalStories);
 
     const sprintCtx = document.getElementById(&#x27;sprintChart&#x27;).getContext(&#x27;2d&#x27;);
     
@@ -2979,6 +3244,121 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
         }
       }
     });
+
+    const testCaseDocField = &quot;Custom field (Test Case Doc)&quot;;
+    const qaSprintLabels = [];
+    const qaSprintNonEmptyCounts = [];
+    const qaSprintEmptyCounts = [];
+    const testCaseDocNonEmptyBySprint = new Map();
+    const testCaseDocEmptyBySprint = new Map();
+
+    filteredData.forEach((issue) =&gt; {
+      const sprint = issue.Sprint;
+      const status = String(issue.Status || &quot;&quot;).trim().toLowerCase();
+      const testCaseDoc = String(issue[testCaseDocField] || &quot;&quot;).trim();
+      if (!sprint || sprint.toLowerCase().includes(&#x27;design&#x27;)) return;
+      if (status !== &#x27;qa&#x27;) return;
+      if (testCaseDoc) {
+        testCaseDocNonEmptyBySprint.set(sprint, (testCaseDocNonEmptyBySprint.get(sprint) || 0) + 1);
+      } else {
+        testCaseDocEmptyBySprint.set(sprint, (testCaseDocEmptyBySprint.get(sprint) || 0) + 1);
+      }
+    });
+
+    sprintEntries.forEach(([sprint]) =&gt; {
+      const nonEmptyCount = testCaseDocNonEmptyBySprint.get(sprint) || 0;
+      const emptyCount = testCaseDocEmptyBySprint.get(sprint) || 0;
+      if (nonEmptyCount &gt; 0 || emptyCount &gt; 0) {
+        qaSprintLabels.push(sprint);
+        qaSprintNonEmptyCounts.push(nonEmptyCount);
+        qaSprintEmptyCounts.push(emptyCount);
+      }
+    });
+
+    const qaDocNonEmptyTotal = qaSprintNonEmptyCounts.reduce((sum, count) =&gt; sum + count, 0);
+    const qaDocEmptyTotal = qaSprintEmptyCounts.reduce((sum, count) =&gt; sum + count, 0);
+    const qaDocTotal = qaDocNonEmptyTotal + qaDocEmptyTotal;
+    const qaDocTotalIssuesEl = document.getElementById(&#x27;qaDocTotalIssues&#x27;);
+    if (qaDocTotalIssuesEl) {
+      qaDocTotalIssuesEl.textContent = `Attached: ${qaDocNonEmptyTotal} | Not Attached: ${qaDocEmptyTotal} | Total: ${qaDocTotal}`;
+    }
+
+    if (qaSprintLabels.length === 0) {
+      qaSprintLabels.push(&#x27;No Matching Sprint&#x27;);
+      qaSprintNonEmptyCounts.push(0);
+      qaSprintEmptyCounts.push(0);
+    }
+
+    const qaDocChartCanvas = document.getElementById(&#x27;qaDocStatusChart&#x27;);
+    if (qaDocChartCanvas) {
+      const qaDocCtx = qaDocChartCanvas.getContext(&#x27;2d&#x27;);
+      window.qaDocStatusChartInstance = new Chart(qaDocCtx, {
+        type: &#x27;bar&#x27;,
+        data: {
+          labels: qaSprintLabels,
+          datasets: [{
+            label: &#x27;Test Case Docs Attached&#x27;,
+            data: qaSprintNonEmptyCounts,
+            backgroundColor: &#x27;rgba(16, 185, 129, 0.75)&#x27;,
+            borderColor: &#x27;#059669&#x27;,
+            borderWidth: 2,
+            borderRadius: 0,
+            borderSkipped: false,
+            stack: &#x27;qa_test_case_doc&#x27;
+          }, {
+            label: &#x27;Test Case Docs Not Attached&#x27;,
+            data: qaSprintEmptyCounts,
+            backgroundColor: &#x27;rgba(239, 68, 68, 0.65)&#x27;,
+            borderColor: &#x27;#dc2626&#x27;,
+            borderWidth: 2,
+            borderRadius: 0,
+            borderSkipped: false,
+            stack: &#x27;qa_test_case_doc&#x27;
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: &#x27;top&#x27;
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${context.parsed.y}`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              stacked: true,
+              ticks: {
+                precision: 0
+              },
+              title: {
+                display: true,
+                text: &#x27;Issues&#x27;
+              }
+            },
+            x: {
+              stacked: true,
+              grid: {
+                display: false
+              },
+              ticks: {
+                autoSkip: false,
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          }
+        }
+      });
+    }
   }
 
 }); // end DOMContentLoaded
@@ -3013,6 +3393,23 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   </main>
 </div>
 
+<div class="reload-modal" id="reloadModal" aria-hidden="true">
+  <div class="reload-card" role="dialog" aria-modal="true" aria-labelledby="reloadModalTitle">
+    <div class="reload-head">
+      <div class="reload-badge">R</div>
+      <h3 class="reload-title" id="reloadModalTitle">Emerald Command Checkpoint</h3>
+    </div>
+    <p class="reload-copy">
+      Your SEJ/PEJ journey is currently loaded. Reloading now will clear this mission context.
+      Do you want to continue the refresh or stay on this dashboard?
+    </p>
+    <div class="reload-actions">
+      <button class="btn" id="reloadStayBtn" type="button">Stay Here</button>
+      <button class="btn reload-continue" id="reloadContinueBtn" type="button">Refresh Now</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   // Dashboard tabs
@@ -3029,36 +3426,66 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   }
   dashTabs.forEach((t,i)=> t.btn.addEventListener('click', ()=>activateDash(i)));
 
-  // Mode tabs
-  const modeTabs = [
-    { btn: document.getElementById('mode-upload'), panel: document.getElementById('mode-panel-upload') },
-    { btn: document.getElementById('mode-api'), panel: document.getElementById('mode-panel-api') },
-  ];
-  function activateMode(idx){
-    modeTabs.forEach((t,i)=>{
-      const active = i===idx;
-      t.btn.setAttribute('aria-selected', String(active));
-      t.panel.style.display = active ? 'block' : 'none';
-    
-    const uploadControls = document.getElementById('uploadControls');
-    if(uploadControls) uploadControls.style.display = (idx === 0) ? 'inline-flex' : 'none';
-});
-  }
-  modeTabs.forEach((t,i)=> t.btn.addEventListener('click', ()=>activateMode(i)));
-
-  const chooseBtn = document.getElementById('chooseFileBtn');
-  const fileInput = document.getElementById('jsonFile');
-  const fileNameEl = document.getElementById('fileName');
+  const chooseActiveBtn = document.getElementById('chooseActiveBtn');
+  const fileInputSej = document.getElementById('jsonFileSej');
+  const fileInputPej = document.getElementById('jsonFilePej');
+  const sourceSejBtn = document.getElementById('source-sej');
+  const sourcePejBtn = document.getElementById('source-pej');
   const frameEpic = document.getElementById('frameEpic');
   const frameSprint = document.getElementById('frameSprint');
 
-  let lastPayload = null;
+  let activeSource = 'SEJ';
+  let bypassBeforeUnloadOnce = false;
+  const payloadBySource = {
+    SEJ: null,
+    PEJ: null
+  };
+  const sourceFileLabel = {
+    SEJ: 'No file uploaded',
+    PEJ: 'No file uploaded'
+  };
 
   function pushToFrames(payload){
-    if(!payload) return;
-    document.body.classList.add('has-data');
+    if(payload == null) return;
     frameEpic.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
     frameSprint.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
+  }
+
+  function refreshSourceTooltips(){
+    if(sourceSejBtn) sourceSejBtn.title = `SEJ: ${sourceFileLabel.SEJ}`;
+    if(sourcePejBtn) sourcePejBtn.title = `PEJ: ${sourceFileLabel.PEJ}`;
+  }
+
+  function setSourceFileName(source, label){
+    sourceFileLabel[source] = label || 'No file uploaded';
+    refreshSourceTooltips();
+  }
+
+  function refreshSourceTabState(){
+    if(sourceSejBtn) sourceSejBtn.classList.toggle('source-loaded', !!payloadBySource.SEJ);
+    if(sourcePejBtn) sourcePejBtn.classList.toggle('source-loaded', !!payloadBySource.PEJ);
+  }
+
+  function hasAnyLoadedData(){
+    return !!(payloadBySource.SEJ || payloadBySource.PEJ);
+  }
+
+  function activateSource(source){
+    activeSource = source;
+    document.body.classList.toggle('source-theme-sej', source === 'SEJ');
+    document.body.classList.toggle('source-theme-pej', source === 'PEJ');
+    if(sourceSejBtn) sourceSejBtn.setAttribute('aria-selected', String(source === 'SEJ'));
+    if(sourcePejBtn) sourcePejBtn.setAttribute('aria-selected', String(source === 'PEJ'));
+    refreshSourceTabState();
+    if(payloadBySource[source]){
+      document.body.classList.add('has-data');
+      document.body.classList.remove('source-empty');
+      pushToFrames(payloadBySource[source]);
+    } else {
+      document.body.classList.remove('has-data');
+      document.body.classList.add('source-empty');
+      pushToFrames([]);
+    }
   }
 
   // Robust CSV parser that handles multiline quoted fields
@@ -3161,12 +3588,10 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     return data;
   }
 
-  chooseBtn.addEventListener('click', ()=> fileInput.click());
-
-  fileInput.addEventListener('change', (e)=>{
-    const file = e.target.files && e.target.files[0];
+  function handleSourceFileChange(source, e){
+    const file = e.target && e.target.files && e.target.files[0];
     if(!file) return;
-    fileNameEl.textContent = file.name;
+    setSourceFileName(source, file.name);
     const reader = new FileReader();
     reader.onload = (ev)=>{
       try {
@@ -3181,132 +3606,113 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
           throw new Error('Unsupported file type. Please upload a JSON or CSV file.');
         }
         
-        lastPayload = parsed;
-        pushToFrames(parsed);
+        payloadBySource[source] = parsed;
+        refreshSourceTabState();
+        if(activeSource === source){
+          document.body.classList.add('has-data');
+          document.body.classList.remove('source-empty');
+          pushToFrames(parsed);
+        }
       } catch(err) {
         console.error(err);
         alert('Could not parse file: ' + err.message);
       }
     };
     reader.readAsText(file);
-  });
-
-  // ----- Fetch from JIRA API -----
-  const apiForm = document.getElementById('apiForm');
-  const apiStatus = document.getElementById('apiStatus');
-
-  function setApiStatus(text){ if(apiStatus) apiStatus.textContent = text; }
-  function normalizeBaseUrl(url){ return (url || '').trim().replace(/\/+$/,''); }
-  function basicAuthHeader(email, token){
-    const raw = `${email}:${token}`;
-    return 'Basic ' + btoa(unescape(encodeURIComponent(raw)));
   }
 
-  async function fetchAllIssues({ baseUrl, email, token, jql, maxResults, fieldsCsv }){
-    const fields = (fieldsCsv || '').trim();
-    const pageSize = Math.min(Math.max(Number(maxResults) || 100, 1), 1000);
-    let startAt = 0;
-    let all = [];
-
-    const tryUrls = [
-      `${baseUrl}/rest/api/3/search`,
-      `${baseUrl}/rest/api/2/search`,
-    ];
-
-    let endpoint = null;
-    let lastErr = null;
-
-    for(const candidate of tryUrls){
-      try{
-        const testUrl = new URL(candidate);
-        testUrl.searchParams.set('jql', jql);
-        testUrl.searchParams.set('startAt', '0');
-        testUrl.searchParams.set('maxResults', '1');
-        if(fields) testUrl.searchParams.set('fields', fields);
-
-        const res = await fetch(testUrl.toString(), {
-          method: 'GET',
-          headers: {
-            'Authorization': basicAuthHeader(email, token),
-            'Accept': 'application/json'
-          }
-        });
-        if(!res.ok){
-          const t = await res.text().catch(()=> '');
-          throw new Error(`HTTP ${res.status}: ${t.slice(0,200)}`);
-        }
-        endpoint = candidate;
-        break;
-      }catch(e){ lastErr = e; }
-    }
-    if(!endpoint) throw (lastErr || new Error('Could not reach JIRA search endpoint'));
-
-    while(true){
-      const url = new URL(endpoint);
-      url.searchParams.set('jql', jql);
-      url.searchParams.set('startAt', String(startAt));
-      url.searchParams.set('maxResults', String(Math.min(100, pageSize)));
-      if(fields) url.searchParams.set('fields', fields);
-
-      const res = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          'Authorization': basicAuthHeader(email, token),
-          'Accept': 'application/json'
-        }
-      });
-
-      if(!res.ok){
-        const t = await res.text().catch(()=> '');
-        throw new Error(`HTTP ${res.status}: ${t.slice(0,400)}`);
-      }
-
-      const data = await res.json();
-      const issues = data.issues || [];
-      all = all.concat(issues);
-
-      const total = Number(data.total || all.length);
-      startAt += issues.length;
-
-      setApiStatus(`Fetched ${all.length}/${total}...`);
-
-      if(issues.length === 0) break;
-      if(all.length >= pageSize) break;
-      if(startAt >= total) break;
-    }
-
-    return all.slice(0, pageSize);
-  }
-
-  if(apiForm){
-    apiForm.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      try{
-        setApiStatus('Fetching...');
-        const baseUrl = normalizeBaseUrl(document.getElementById('jiraUrl').value);
-        const email = (document.getElementById('jiraEmail').value || '').trim();
-        const token = document.getElementById('jiraToken').value || '';
-        const jql = (document.getElementById('jiraJql').value || '').trim();
-        const maxResults = document.getElementById('jiraMax').value;
-        const fieldsCsv = document.getElementById('jiraFields').value;
-
-        const issues = await fetchAllIssues({ baseUrl, email, token, jql, maxResults, fieldsCsv });
-        lastPayload = issues;
-        document.body.classList.add('has-data');
-        setApiStatus(`Loaded ${issues.length} issues`);
-        pushToFrames(issues);
-      }catch(err){
-        console.error(err);
-        setApiStatus('Failed');
-        alert('Fetch failed. Common causes:\n' +
-              '• CORS blocked by browser\n' +
-              '• Wrong base URL / credentials\n' +
-              '• JQL error\n\n' +
-              'Details: ' + (err && err.message ? err.message : err));
+  if(chooseActiveBtn){
+    chooseActiveBtn.addEventListener('click', ()=>{
+      if(activeSource === 'PEJ' && fileInputPej) {
+        fileInputPej.click();
+      } else if(fileInputSej) {
+        fileInputSej.click();
       }
     });
   }
+  if(fileInputSej) fileInputSej.addEventListener('change', (e)=> handleSourceFileChange('SEJ', e));
+  if(fileInputPej) fileInputPej.addEventListener('change', (e)=> handleSourceFileChange('PEJ', e));
+  if(sourceSejBtn) sourceSejBtn.addEventListener('click', ()=> activateSource('SEJ'));
+  if(sourcePejBtn) sourcePejBtn.addEventListener('click', ()=> activateSource('PEJ'));
+  refreshSourceTabState();
+  refreshSourceTooltips();
+  activateSource('SEJ');
+
+  const reloadModal = document.getElementById('reloadModal');
+  const reloadStayBtn = document.getElementById('reloadStayBtn');
+  const reloadContinueBtn = document.getElementById('reloadContinueBtn');
+
+  function showReloadModal(){
+    if(!reloadModal) return;
+    reloadModal.classList.add('show');
+    reloadModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideReloadModal(){
+    if(!reloadModal) return;
+    reloadModal.classList.remove('show');
+    reloadModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function isReloadShortcut(event){
+    const key = (event.key || '').toLowerCase();
+    const hasCmdOrCtrl = event.ctrlKey || event.metaKey;
+    return event.key === 'F5' || (hasCmdOrCtrl && key === 'r');
+  }
+
+  function handleReloadShortcut(event){
+    if (!hasAnyLoadedData()) return;
+    if (!isReloadShortcut(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    showReloadModal();
+  }
+
+  function bindReloadGuardToFrame(frameEl){
+    if(!frameEl) return;
+    const bind = () => {
+      try{
+        const w = frameEl.contentWindow;
+        if(!w || w.__reloadGuardBound) return;
+        w.__reloadGuardBound = true;
+        w.addEventListener('keydown', handleReloadShortcut, true);
+        if(w.document){
+          w.document.addEventListener('keydown', handleReloadShortcut, true);
+        }
+      }catch(_e){
+        // Ignore binding issues; parent handler still works.
+      }
+    };
+    frameEl.addEventListener('load', bind);
+    setTimeout(bind, 300);
+  }
+
+  window.addEventListener('keydown', handleReloadShortcut, true);
+  document.addEventListener('keydown', handleReloadShortcut, true);
+  bindReloadGuardToFrame(frameEpic);
+  bindReloadGuardToFrame(frameSprint);
+
+  if(reloadStayBtn) reloadStayBtn.addEventListener('click', hideReloadModal);
+  if(reloadContinueBtn) reloadContinueBtn.addEventListener('click', () => {
+    bypassBeforeUnloadOnce = true;
+    hideReloadModal();
+    window.location.reload();
+  });
+  if(reloadModal) reloadModal.addEventListener('click', (event) => {
+    if (event.target === reloadModal) hideReloadModal();
+  });
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') hideReloadModal();
+  });
+
+  window.addEventListener('beforeunload', (event) => {
+    if (bypassBeforeUnloadOnce || !hasAnyLoadedData()) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
 })();
 </script>
 </body>
 </html>
+
