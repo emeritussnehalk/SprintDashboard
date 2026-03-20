@@ -3256,8 +3256,10 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
       const sprint = issue.Sprint;
       const status = String(issue.Status || &quot;&quot;).trim().toLowerCase();
       const testCaseDoc = String(issue[testCaseDocField] || &quot;&quot;).trim();
+      const issueType = String(issue[&quot;Issue Type&quot;] || &quot;&quot;).trim().toLowerCase();
       if (!sprint || sprint.toLowerCase().includes(&#x27;design&#x27;)) return;
       if (status !== &#x27;qa&#x27;) return;
+      if (issueType !== &#x27;story&#x27;) return;
       if (testCaseDoc) {
         testCaseDocNonEmptyBySprint.set(sprint, (testCaseDocNonEmptyBySprint.get(sprint) || 0) + 1);
       } else {
@@ -3431,8 +3433,22 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   const fileInputPej = document.getElementById('jsonFilePej');
   const sourceSejBtn = document.getElementById('source-sej');
   const sourcePejBtn = document.getElementById('source-pej');
-  const frameEpic = document.getElementById('frameEpic');
-  const frameSprint = document.getElementById('frameSprint');
+  const frameEpicSej = document.getElementById('frameEpic');
+  const frameSprintSej = document.getElementById('frameSprint');
+  const frameEpicPej = frameEpicSej.cloneNode(true);
+  frameEpicPej.id = 'frameEpicPej';
+  frameEpicPej.style.display = 'none';
+  frameEpicSej.parentElement.appendChild(frameEpicPej);
+
+  const frameSprintPej = frameSprintSej.cloneNode(true);
+  frameSprintPej.id = 'frameSprintPej';
+  frameSprintPej.style.display = 'none';
+  frameSprintSej.parentElement.appendChild(frameSprintPej);
+
+  const sourceFrames = {
+    SEJ: { epic: frameEpicSej, sprint: frameSprintSej },
+    PEJ: { epic: frameEpicPej, sprint: frameSprintPej }
+  };
 
   let activeSource = 'SEJ';
   let bypassBeforeUnloadOnce = false;
@@ -3444,11 +3460,26 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     SEJ: 'No file uploaded',
     PEJ: 'No file uploaded'
   };
+  const sourceFrameHydrated = {
+    SEJ: false,
+    PEJ: false
+  };
 
-  function pushToFrames(payload){
+  function setSourceFrameVisibility(source){
+    Object.keys(sourceFrames).forEach((key) => {
+      const visible = key === source;
+      const frames = sourceFrames[key];
+      frames.epic.style.display = visible ? 'block' : 'none';
+      frames.sprint.style.display = visible ? 'block' : 'none';
+    });
+  }
+
+  function pushToFrames(payload, source = activeSource){
     if(payload == null) return;
-    frameEpic.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
-    frameSprint.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
+    const frames = sourceFrames[source];
+    if(!frames) return;
+    frames.epic.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
+    frames.sprint.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
   }
 
   function refreshSourceTooltips(){
@@ -3472,6 +3503,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
 
   function activateSource(source){
     activeSource = source;
+    setSourceFrameVisibility(source);
     document.body.classList.toggle('source-theme-sej', source === 'SEJ');
     document.body.classList.toggle('source-theme-pej', source === 'PEJ');
     if(sourceSejBtn) sourceSejBtn.setAttribute('aria-selected', String(source === 'SEJ'));
@@ -3480,11 +3512,17 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     if(payloadBySource[source]){
       document.body.classList.add('has-data');
       document.body.classList.remove('source-empty');
-      pushToFrames(payloadBySource[source]);
+      if(!sourceFrameHydrated[source]){
+        pushToFrames(payloadBySource[source], source);
+        sourceFrameHydrated[source] = true;
+      }
     } else {
       document.body.classList.remove('has-data');
       document.body.classList.add('source-empty');
-      pushToFrames([]);
+      if(!sourceFrameHydrated[source]){
+        pushToFrames([], source);
+        sourceFrameHydrated[source] = true;
+      }
     }
   }
 
@@ -3607,11 +3645,14 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
         }
         
         payloadBySource[source] = parsed;
+        sourceFrameHydrated[source] = false;
         refreshSourceTabState();
+        pushToFrames(parsed, source);
+        sourceFrameHydrated[source] = true;
         if(activeSource === source){
           document.body.classList.add('has-data');
           document.body.classList.remove('source-empty');
-          pushToFrames(parsed);
+          setSourceFrameVisibility(source);
         }
       } catch(err) {
         console.error(err);
@@ -3689,8 +3730,10 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
 
   window.addEventListener('keydown', handleReloadShortcut, true);
   document.addEventListener('keydown', handleReloadShortcut, true);
-  bindReloadGuardToFrame(frameEpic);
-  bindReloadGuardToFrame(frameSprint);
+  bindReloadGuardToFrame(frameEpicSej);
+  bindReloadGuardToFrame(frameSprintSej);
+  bindReloadGuardToFrame(frameEpicPej);
+  bindReloadGuardToFrame(frameSprintPej);
 
   if(reloadStayBtn) reloadStayBtn.addEventListener('click', hideReloadModal);
   if(reloadContinueBtn) reloadContinueBtn.addEventListener('click', () => {
