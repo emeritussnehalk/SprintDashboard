@@ -1,0 +1,13 @@
+{
+  "name": "sprint-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sprint Dashboard with Jira API sync.",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: sprint-dashboard
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JIRA_BASE_URL
+        sync: false
+      - key: JIRA_EMAIL
+        sync: false
+      - key: JIRA_API_TOKEN
+        sync: false
+      - key: JIRA_JQL_SEJ
+        value: project = SEJ ORDER BY Rank ASC
+      - key: JIRA_JQL_PEJ
+        value: project = PEJ ORDER BY Rank ASC
+      - key: SYNC_USERNAME
+        sync: false
+      - key: SYNC_PASSWORD
+        sync: false
