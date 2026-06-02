@@ -116,6 +116,7 @@
     .btn{appearance:none;border:1px solid var(--border);background:#fff;color:var(--text);padding:9px 12px;border-radius:12px;cursor:pointer;font-weight:900;box-shadow:var(--shadow-sm);}
     .btn:hover{border-color:rgba(11,143,106,.35);}
     .btn.primary{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+    .btn.sync-btn{background:#0b8f6a;border-color:#0b8f6a;color:#fff;}
     .filepill{
       color:var(--muted);
       font-size:12px;
@@ -137,12 +138,34 @@
     .api-grid .span-2{grid-column:span 2;}
     .api-actions{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;}
     .api-note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.4;}
+    .jira-sync-status{
+      position:fixed;
+      right:16px;
+      bottom:14px;
+      z-index:50;
+      max-width:min(520px, calc(100vw - 32px));
+      padding:7px 10px;
+      border:1px solid rgba(15,23,42,.12);
+      border-radius:8px;
+      background:rgba(255,255,255,.92);
+      color:#475569;
+      font-size:12px;
+      line-height:1.25;
+      box-shadow:0 4px 14px rgba(15,23,42,.08);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .jira-sync-status.ok{border-color:rgba(11,143,106,.22);color:#086e53;}
+    .jira-sync-status.warn{border-color:rgba(245,158,11,.35);color:#92400e;}
+    .jira-sync-status.error{border-color:rgba(239,68,68,.28);color:#991b1b;}
 
     main{flex:1;min-height:0;display:flex;}
     .panel{flex:1;min-height:0;display:none;flex-direction:column;}
     .panel.active{display:flex;}
     body.source-empty main{display:none;}
-    .reload-modal{
+    .reload-modal,
+    .sync-modal{
       position:fixed;
       inset:0;
       background:rgba(15,23,42,.45);
@@ -153,8 +176,10 @@
       z-index:9999;
       padding:20px;
     }
-    .reload-modal.show{display:flex;}
-    .reload-card{
+    .reload-modal.show,
+    .sync-modal.show{display:flex;}
+    .reload-card,
+    .sync-card{
       width:min(560px, 100%);
       background:#ffffff;
       border:1px solid rgba(11,143,106,.25);
@@ -162,26 +187,46 @@
       box-shadow:0 20px 45px rgba(15,23,42,.25);
       padding:22px;
     }
-    .reload-head{
+    .reload-head,
+    .sync-head{
       display:flex;
       align-items:center;
       gap:12px;
       margin-bottom:10px;
     }
-    .reload-badge{
+    .reload-badge,
+    .sync-badge{
       width:38px;height:38px;border-radius:12px;
       display:grid;place-items:center;
       color:#0b8f6a;background:#e7f6f1;border:1px solid #b7e7d7;
       font-weight:900;
     }
-    .reload-title{margin:0;font-size:18px;line-height:1.3;}
-    .reload-copy{margin:0;color:#475569;line-height:1.5;}
-    .reload-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+    .reload-title,
+    .sync-title{margin:0;font-size:18px;line-height:1.3;}
+    .reload-copy,
+    .sync-copy{margin:0;color:#475569;line-height:1.5;}
+    .reload-actions,
+    .sync-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
     .btn.reload-continue{
       background:linear-gradient(90deg,#0b8f6a,#0a7f61);
       border-color:#0b8f6a;
       color:#fff;
     }
+    .sync-form{display:grid;gap:12px;margin-top:18px;}
+    .sync-form label{display:grid;gap:6px;font-size:12px;font-weight:800;color:#475569;}
+    .sync-form input{
+      width:100%;
+      box-sizing:border-box;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 12px;
+      font:inherit;
+      color:var(--text);
+      outline:none;
+    }
+    .sync-form input:focus{border-color:#0b8f6a;box-shadow:0 0 0 3px rgba(11,143,106,.12);}
+    .sync-error{display:none;margin-top:10px;color:#991b1b;font-size:13px;font-weight:700;}
+    .sync-error.show{display:block;}
     
     .dashboard-intro{
       margin:32px auto 0;
@@ -456,6 +501,7 @@
           <input id="jsonFileSej" type="file" accept=".json,.csv"/>
           <input id="jsonFilePej" type="file" accept=".json,.csv"/>
         </span>
+        <button class="btn sync-btn" id="syncJiraBtn" type="button">Sync</button>
 
         <div class="seg" id="sourceTabs" role="tablist" aria-label="Dataset Tabs">
           <button class="tab-btn source-tab" id="source-sej" role="tab" aria-selected="true" aria-label="SEJ Data" title="SEJ: No file uploaded">SEJ</button>
@@ -3395,6 +3441,33 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   </main>
 </div>
 
+<div class="jira-sync-status warn" id="sprintSyncStatus">Jira data not loaded</div>
+
+<div class="sync-modal" id="syncModal" aria-hidden="true">
+  <div class="sync-card" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle">
+    <div class="sync-head">
+      <div class="sync-badge">S</div>
+      <h3 class="sync-title" id="syncModalTitle">Sync Jira Data</h3>
+    </div>
+    <p class="sync-copy">Enter the sync credentials to fetch the latest Sprint Dashboard data from Jira.</p>
+    <form class="sync-form" id="syncForm">
+      <label>
+        Username
+        <input id="syncUsername" name="username" autocomplete="username" required />
+      </label>
+      <label>
+        Password
+        <input id="syncPassword" name="password" type="password" autocomplete="current-password" required />
+      </label>
+      <div class="sync-error" id="syncError"></div>
+      <div class="sync-actions">
+        <button class="btn" id="syncCancelBtn" type="button">Cancel</button>
+        <button class="btn sync-btn" id="syncSubmitBtn" type="submit">Sync</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="reload-modal" id="reloadModal" aria-hidden="true">
   <div class="reload-card" role="dialog" aria-modal="true" aria-labelledby="reloadModalTitle">
     <div class="reload-head">
@@ -3429,6 +3502,15 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   dashTabs.forEach((t,i)=> t.btn.addEventListener('click', ()=>activateDash(i)));
 
   const chooseActiveBtn = document.getElementById('chooseActiveBtn');
+  const syncJiraBtn = document.getElementById('syncJiraBtn');
+  const sprintSyncStatus = document.getElementById('sprintSyncStatus');
+  const syncModal = document.getElementById('syncModal');
+  const syncForm = document.getElementById('syncForm');
+  const syncUsername = document.getElementById('syncUsername');
+  const syncPassword = document.getElementById('syncPassword');
+  const syncCancelBtn = document.getElementById('syncCancelBtn');
+  const syncSubmitBtn = document.getElementById('syncSubmitBtn');
+  const syncError = document.getElementById('syncError');
   const fileInputSej = document.getElementById('jsonFileSej');
   const fileInputPej = document.getElementById('jsonFilePej');
   const sourceSejBtn = document.getElementById('source-sej');
@@ -3464,6 +3546,132 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     SEJ: false,
     PEJ: false
   };
+  const sprintApiUrl = './api/sprint-dashboard';
+  const sprintSyncApiUrl = './api/sprint-dashboard/sync';
+
+  function setSyncStatus(message, state = 'warn'){
+    if(!sprintSyncStatus) return;
+    sprintSyncStatus.textContent = message;
+    sprintSyncStatus.classList.remove('ok', 'warn', 'error');
+    sprintSyncStatus.classList.add(state);
+  }
+
+  function formatSyncDateTime(value){
+    if(!value) return '';
+    const date = new Date(value);
+    if(Number.isNaN(date.getTime())) return '';
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }).replace(',', '');
+  }
+
+  function getServerRecords(payload, source){
+    if(!payload || !payload.records) return [];
+    if(Array.isArray(payload.records)) return payload.records;
+    return Array.isArray(payload.records[source]) ? payload.records[source] : [];
+  }
+
+  function applyServerPayload(payload){
+    const sejRecords = getServerRecords(payload, 'SEJ');
+    const pejRecords = getServerRecords(payload, 'PEJ');
+    payloadBySource.SEJ = sejRecords;
+    payloadBySource.PEJ = pejRecords;
+    sourceFrameHydrated.SEJ = false;
+    sourceFrameHydrated.PEJ = false;
+    setSourceFileName('SEJ', `Jira API (${sejRecords.length} rows)`);
+    setSourceFileName('PEJ', `Jira API (${pejRecords.length} rows)`);
+    refreshSourceTabState();
+    queueSourceRehydration('SEJ');
+    queueSourceRehydration('PEJ');
+    activateSource(activeSource);
+    document.body.classList.add('has-data');
+    document.body.classList.remove('source-empty');
+
+    const syncedAt = formatSyncDateTime(payload.generatedAt);
+    const sejCount = payload.totals && Number.isFinite(Number(payload.totals.SEJ)) ? payload.totals.SEJ : sejRecords.length;
+    const pejCount = payload.totals && Number.isFinite(Number(payload.totals.PEJ)) ? payload.totals.PEJ : pejRecords.length;
+    setSyncStatus(`Jira data SEJ ${sejCount} rows / PEJ ${pejCount} rows at ${syncedAt || 'unknown time'}`, 'ok');
+  }
+
+  async function loadSprintDashboardData(){
+    setSyncStatus('Checking Jira data...', 'warn');
+    try{
+      const response = await fetch(sprintApiUrl, { cache: 'no-store' });
+      const payload = await response.json();
+      if(!response.ok || payload.configured === false){
+        setSyncStatus(payload.error || 'Jira API is not configured. Upload file fallback is available.', 'warn');
+        return;
+      }
+      applyServerPayload(payload);
+    }catch(err){
+      console.warn('Jira dashboard API unavailable:', err);
+      setSyncStatus('Jira API unavailable. Upload file fallback is available.', 'warn');
+    }
+  }
+
+  function showSyncModal(){
+    if(!syncModal) return;
+    if(syncError){
+      syncError.textContent = '';
+      syncError.classList.remove('show');
+    }
+    if(syncSubmitBtn) syncSubmitBtn.disabled = false;
+    syncModal.classList.add('show');
+    syncModal.setAttribute('aria-hidden', 'false');
+    setTimeout(() => {
+      if(syncUsername) syncUsername.focus();
+    }, 0);
+  }
+
+  function hideSyncModal(){
+    if(!syncModal) return;
+    syncModal.classList.remove('show');
+    syncModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function showSyncError(message){
+    if(!syncError) return;
+    syncError.textContent = message;
+    syncError.classList.add('show');
+  }
+
+  async function submitProtectedSync(event){
+    event.preventDefault();
+    if(!syncUsername || !syncPassword) return;
+    const username = syncUsername.value.trim();
+    const password = syncPassword.value;
+    if(!username || !password){
+      showSyncError('Username and password are required.');
+      return;
+    }
+    if(syncSubmitBtn) syncSubmitBtn.disabled = true;
+    setSyncStatus('Syncing Jira data...', 'warn');
+    if(syncError) syncError.classList.remove('show');
+    try{
+      const response = await fetch(sprintSyncApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const payload = await response.json();
+      if(!response.ok){
+        throw new Error(payload.error || 'Sync failed.');
+      }
+      applyServerPayload(payload);
+      hideSyncModal();
+      syncPassword.value = '';
+    }catch(err){
+      showSyncError(err.message || 'Sync failed.');
+      setSyncStatus(err.message || 'Jira sync failed.', 'error');
+    }finally{
+      if(syncSubmitBtn) syncSubmitBtn.disabled = false;
+    }
+  }
 
   function setSourceFrameVisibility(source){
     Object.keys(sourceFrames).forEach((key) => {
@@ -3480,6 +3688,25 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     if(!frames) return;
     frames.epic.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
     frames.sprint.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
+  }
+
+  function rehydrateSourceFrames(source){
+    if(!payloadBySource[source]) return;
+    pushToFrames(payloadBySource[source], source);
+    sourceFrameHydrated[source] = true;
+  }
+
+  function queueSourceRehydration(source){
+    rehydrateSourceFrames(source);
+    setTimeout(() => rehydrateSourceFrames(source), 100);
+    setTimeout(() => rehydrateSourceFrames(source), 500);
+  }
+
+  function bindSourceFrameLoad(frameEl, source){
+    if(!frameEl) return;
+    frameEl.addEventListener('load', () => {
+      setTimeout(() => rehydrateSourceFrames(source), 50);
+    });
   }
 
   function refreshSourceTooltips(){
@@ -3654,6 +3881,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
           document.body.classList.remove('source-empty');
           setSourceFrameVisibility(source);
         }
+        setSyncStatus(`Manual file data ${source} ${parsed.length} rows`, 'ok');
       } catch(err) {
         console.error(err);
         alert('Could not parse file: ' + err.message);
@@ -3675,9 +3903,20 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   if(fileInputPej) fileInputPej.addEventListener('change', (e)=> handleSourceFileChange('PEJ', e));
   if(sourceSejBtn) sourceSejBtn.addEventListener('click', ()=> activateSource('SEJ'));
   if(sourcePejBtn) sourcePejBtn.addEventListener('click', ()=> activateSource('PEJ'));
+  if(syncJiraBtn) syncJiraBtn.addEventListener('click', showSyncModal);
+  if(syncCancelBtn) syncCancelBtn.addEventListener('click', hideSyncModal);
+  if(syncForm) syncForm.addEventListener('submit', submitProtectedSync);
+  if(syncModal) syncModal.addEventListener('click', (event) => {
+    if(event.target === syncModal) hideSyncModal();
+  });
+  bindSourceFrameLoad(frameEpicSej, 'SEJ');
+  bindSourceFrameLoad(frameSprintSej, 'SEJ');
+  bindSourceFrameLoad(frameEpicPej, 'PEJ');
+  bindSourceFrameLoad(frameSprintPej, 'PEJ');
   refreshSourceTabState();
   refreshSourceTooltips();
   activateSource('SEJ');
+  loadSprintDashboardData();
 
   const reloadModal = document.getElementById('reloadModal');
   const reloadStayBtn = document.getElementById('reloadStayBtn');
@@ -3745,7 +3984,10 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     if (event.target === reloadModal) hideReloadModal();
   });
   window.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') hideReloadModal();
+    if (event.key === 'Escape') {
+      hideReloadModal();
+      hideSyncModal();
+    }
   });
 
   window.addEventListener('beforeunload', (event) => {
