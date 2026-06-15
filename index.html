@@ -964,6 +964,7 @@
       displayEpics(filtered);
     }
     clearEpicDetails();
+    notifyParentGlobalFiltersChanged();
   });
 
   document.getElementById(&#x27;reset-global-filters&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; {
@@ -987,6 +988,7 @@
     if (searchInput) searchInput.value = &#x27;&#x27;;
     displayEpics(filtered);
     clearEpicDetails();
+    notifyParentGlobalFiltersChanged();
   });
 
   // Epic search functionality - set up dynamically with real-time filtering
@@ -1293,7 +1295,10 @@
 
   function populateFilter(selectElement, values) {
     selectElement.innerHTML = &#x27;&lt;option value=&quot;All&quot; selected&gt;All&lt;/option&gt;&#x27;;
-    Array.from(values).sort().forEach(value =&gt; {
+    Array.from(values).sort((a, b) =&gt; String(a || &quot;&quot;).localeCompare(String(b || &quot;&quot;), undefined, {
+      numeric: true,
+      sensitivity: &quot;base&quot;
+    })).forEach(value =&gt; {
       const option = document.createElement(&#x27;option&#x27;);
       option.value = value;
       option.textContent = value;
@@ -1389,6 +1394,52 @@
       (skillSetFilter.length === 0 || skillSetFilter.includes(story.skillSet))
     );
   });
+  }
+
+  function getIssueFilterValue(issue, field) {
+    const fallback = &#x27;Not Assigned&#x27;;
+    if (field === &#x27;productManager&#x27;) return issue[&#x27;Custom field (Product Manager)&#x27;] || fallback;
+    if (field === &#x27;sprint&#x27;) return issue.Sprint || fallback;
+    if (field === &#x27;status&#x27;) return issue.Status || fallback;
+    if (field === &#x27;university&#x27;) return issue[&#x27;Custom field (University Name)&#x27;] || fallback;
+    if (field === &#x27;skillSet&#x27;) return issue[&#x27;Custom field (Skill Set)&#x27;] || fallback;
+    return fallback;
+  }
+
+  function getGloballyFilteredIssues(options = {}) {
+    const sprintStoryScopeOnly = options.sprintStoryScopeOnly === true;
+    if (sprintStoryScopeOnly) {
+      const sprintFilter = getSelectedValues(&#x27;sprint-filter&#x27;);
+      return allData.filter(issue =&gt; {
+        const issueType = String(issue[&quot;Issue Type&quot;] || issue[&quot;Issue type&quot;] || issue.issuetype || issue.Type || &#x27;&#x27;).trim().toLowerCase();
+        return issueType === &quot;story&quot; &amp;&amp;
+          (sprintFilter.length === 0 || sprintFilter.includes(issue.Sprint || &#x27;Not Assigned&#x27;));
+      });
+    }
+
+    const ignoreStatus = options.ignoreStatus === true;
+    const filters = {
+      productManager: getSelectedValues(&#x27;pm-filter&#x27;),
+      sprint: getSelectedValues(&#x27;sprint-filter&#x27;),
+      status: ignoreStatus ? [] : getSelectedValues(&#x27;status-filter&#x27;),
+      university: getSelectedValues(&#x27;university-filter&#x27;),
+      skillSet: getSelectedValues(&#x27;skillset-filter&#x27;)
+    };
+    const hasActiveFilter = Object.values(filters).some(values =&gt; values.length &gt; 0);
+    if (!hasActiveFilter) return allData.slice();
+
+    return allData.filter(issue =&gt; Object.entries(filters).every(([field, values]) =&gt; {
+      return values.length === 0 || values.includes(getIssueFilterValue(issue, field));
+    }));
+  }
+
+  function notifyParentGlobalFiltersChanged() {
+    if (!window.parent || window.parent === window) return;
+    window.parent.postMessage({
+      type: &#x27;EPIC_GLOBAL_FILTERED_JIRA_JSON&#x27;,
+      payload: getGloballyFilteredIssues(),
+      statusPercentagePayload: getGloballyFilteredIssues({ sprintStoryScopeOnly: true })
+    }, &#x27;*&#x27;);
   }
 
   function getSelectedValues(filterId) {
@@ -2372,17 +2423,27 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   const applyFiltersBtn = document.getElementById(&#x27;apply-filters&#x27;);
   const resetFiltersBtn = document.getElementById(&#x27;reset-filters&#x27;);
 
+  const NO_SPRINT_VALUE = &#x27;__NO_SPRINT__&#x27;;
+  const NO_SPRINT_LABEL = &#x27;No Sprint&#x27;;
+
   let sprintSelect, epicSelect, statusSelect, pmSelect, issueTypeSelect;
   let jiraData = [];
   let filteredData = [];
+  let statusPercentageData = [];
+  let statusPercentageSourceData = [];
 
   // --- Injected: accept JSON from parent (shared upload/API) ---
   window.addEventListener(&#x27;PARENT_JIRA_JSON_READY&#x27;, function(){
     try{
       const incoming = window.__PARENT_JIRA_PAYLOAD__;
       if(!incoming) return;
+      const incomingStatusPercentage = window.__PARENT_JIRA_STATUS_PERCENTAGE_PAYLOAD__;
       jiraData = incoming;
       filteredData = Array.isArray(incoming) ? [...incoming] : [incoming];
+      statusPercentageData = Array.isArray(incomingStatusPercentage)
+        ? [...incomingStatusPercentage]
+        : [...filteredData];
+      statusPercentageSourceData = [...statusPercentageData];
       processJiraData(jiraData);
     } catch (err) {
       console.error(err);
@@ -2450,9 +2511,39 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     selectEl.appendChild(option);
   }
 
+  function sortFilterValues(values) {
+    return Array.from(values).sort((a, b) =&gt; String(a || &quot;&quot;).localeCompare(String(b || &quot;&quot;), undefined, {
+      numeric: true,
+      sensitivity: &quot;base&quot;
+    }));
+  }
+
   function getSelectedValues(selectEl) {
     if (!selectEl) return [];
     return Array.from(selectEl.selectedOptions).map((opt) =&gt; opt.value);
+  }
+
+  function getIssueType(issue) {
+    return issue[&quot;Issue Type&quot;] || issue[&quot;Issue type&quot;] || issue[&quot;issuetype&quot;] || issue[&quot;Type&quot;] || null;
+  }
+
+  function isStoryIssue(issue) {
+    return String(getIssueType(issue) || &quot;&quot;).trim().toLowerCase() === &quot;story&quot;;
+  }
+
+  function getStatusPercentageBaseData() {
+    const sprints = getSelectedValues(sprintSelect);
+
+    const sourceData = statusPercentageSourceData.length ? statusPercentageSourceData : jiraData;
+    return sourceData.filter(issue =&gt; {
+      const matchS = sprints.includes(&#x27;all&#x27;) || (issue.Sprint ? sprints.includes(issue.Sprint) : sprints.includes(NO_SPRINT_VALUE));
+      return matchS &amp;&amp; isStoryIssue(issue);
+    });
+  }
+
+  function getStatusPercentageTotalIssues() {
+    const baseData = statusPercentageData.length ? statusPercentageData : filteredData;
+    return baseData.length;
   }
 
   function setSelectedValues(selectEl, values) {
@@ -2591,6 +2682,8 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
           jiraData = JSON.parse(e.target.result);
         }
         filteredData = [...jiraData];
+        statusPercentageData = [...jiraData];
+        statusPercentageSourceData = [...jiraData];
         processJiraData(jiraData);
       } catch (err) {
         console.error(err);
@@ -2601,6 +2694,10 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   }
 
   function processJiraData(data) {
+    if (!statusPercentageData.length) {
+      statusPercentageData = Array.isArray(data) ? [...data] : [data];
+      statusPercentageSourceData = [...statusPercentageData];
+    }
     const metrics = calculateMetrics(data);
     populateFilters(metrics);
     updateMetricsUI(metrics);
@@ -2618,6 +2715,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
       uniquePMs: new Set(),
       uniqueStatuses: new Set(),
       uniqueIssueTypes: new Set(),
+      hasNoSprint: false,
       sprintBreakdown: new Map(),
       epicBreakdown: new Map(),
       statusBreakdown: new Map(),
@@ -2627,7 +2725,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     data.forEach(issue =&gt; {
       let sp = normalizeStoryPoints(issue[&quot;Custom field (Story Points)&quot;]);
 
-      const issueType = issue[&quot;Issue Type&quot;] || issue[&quot;Issue type&quot;] || issue[&quot;issuetype&quot;] || issue[&quot;Type&quot;] || null;
+      const issueType = getIssueType(issue);
       if (issueType) metrics.uniqueIssueTypes.add(issueType);
 
       if (issue.Status) {
@@ -2645,8 +2743,13 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
         statusData.storyPoints += sp;
       }
 
-      if (issue.Sprint &amp;&amp; !issue.Sprint.toLowerCase().includes(&#x27;design&#x27;)) {
+      if (issue.Sprint) {
         metrics.uniqueSprints.add(issue.Sprint);
+      } else {
+        metrics.hasNoSprint = true;
+      }
+
+      if (issue.Sprint &amp;&amp; !issue.Sprint.toLowerCase().includes(&#x27;design&#x27;)) {
         if (!metrics.sprintBreakdown.has(issue.Sprint)) {
           metrics.sprintBreakdown.set(issue.Sprint, {
             totalStories: 0,
@@ -2714,11 +2817,14 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     addSelectOption(pmSelect, &quot;all&quot;, &quot;All Product Owners&quot;, true);
     addSelectOption(issueTypeSelect, &quot;all&quot;, &quot;All Issue Types&quot;, true);
 
-    metrics.uniqueSprints.forEach((s) =&gt; addSelectOption(sprintSelect, s, s));
-    metrics.uniqueEpics.forEach((name, id) =&gt; addSelectOption(epicSelect, id, name));
-    metrics.uniqueStatuses.forEach((st) =&gt; addSelectOption(statusSelect, st, st));
-    metrics.uniquePMs.forEach((pm) =&gt; addSelectOption(pmSelect, pm, pm));
-    metrics.uniqueIssueTypes.forEach((t) =&gt; addSelectOption(issueTypeSelect, t, t));
+    sortFilterValues(metrics.uniqueSprints).forEach((s) =&gt; addSelectOption(sprintSelect, s, s));
+    if (metrics.hasNoSprint) addSelectOption(sprintSelect, NO_SPRINT_VALUE, NO_SPRINT_LABEL);
+    Array.from(metrics.uniqueEpics.entries())
+      .sort((a, b) =&gt; String(a[1] || &quot;&quot;).localeCompare(String(b[1] || &quot;&quot;), undefined, { numeric: true, sensitivity: &quot;base&quot; }))
+      .forEach(([id, name]) =&gt; addSelectOption(epicSelect, id, name));
+    sortFilterValues(metrics.uniqueStatuses).forEach((st) =&gt; addSelectOption(statusSelect, st, st));
+    sortFilterValues(metrics.uniquePMs).forEach((pm) =&gt; addSelectOption(pmSelect, pm, pm));
+    sortFilterValues(metrics.uniqueIssueTypes).forEach((t) =&gt; addSelectOption(issueTypeSelect, t, t));
 
     setSelectedValues(sprintSelect, [&quot;all&quot;]);
     setSelectedValues(epicSelect, [&quot;all&quot;]);
@@ -2735,14 +2841,15 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     const issueTypes = getSelectedValues(issueTypeSelect);
 
     filteredData = jiraData.filter(issue =&gt; {
-      let matchS = sprints.includes(&#x27;all&#x27;) || (issue.Sprint &amp;&amp; sprints.includes(issue.Sprint));
+      let matchS = sprints.includes(&#x27;all&#x27;) || (issue.Sprint ? sprints.includes(issue.Sprint) : sprints.includes(NO_SPRINT_VALUE));
       let matchE = epics.includes(&#x27;all&#x27;) || (issue.Parent &amp;&amp; epics.includes(issue.Parent));
       let matchSt = statuses.includes(&#x27;all&#x27;) || statuses.includes(issue.Status);
       let matchPM = pms.includes(&#x27;all&#x27;) || pms.includes(issue[&quot;Custom field (Product Manager)&quot;]);
-      const it = issue[&quot;Issue Type&quot;] || issue[&quot;Issue type&quot;] || issue[&quot;issuetype&quot;] || issue[&quot;Type&quot;];
+      const it = getIssueType(issue);
       let matchIT = issueTypes.includes(&#x27;all&#x27;) || (it &amp;&amp; issueTypes.includes(it));
       return matchS &amp;&amp; matchE &amp;&amp; matchSt &amp;&amp; matchPM &amp;&amp; matchIT;
     });
+    statusPercentageData = getStatusPercentageBaseData();
 
     const metrics = calculateMetrics(filteredData);
     updateMetricsUI(metrics);
@@ -2757,6 +2864,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     setSelectedValues(pmSelect, [&quot;all&quot;]);
     setSelectedValues(issueTypeSelect, [&quot;all&quot;]);
     filteredData = [...jiraData];
+    statusPercentageData = getStatusPercentageBaseData();
     const metrics = calculateMetrics(jiraData);
     updateMetricsUI(metrics);
     createCharts(metrics);
@@ -3063,10 +3171,35 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
 
     const statusLabels = [];
     const statusCounts = [];
-    metrics.statusBreakdown.forEach((d, status) =&gt; {
-      statusLabels.push(status);
-      statusCounts.push(d.totalIssues);
+    const storyStatusBreakdown = new Map();
+    filteredData.forEach((issue) =&gt; {
+      if (!isStoryIssue(issue) || !issue.Status) return;
+      storyStatusBreakdown.set(issue.Status, (storyStatusBreakdown.get(issue.Status) || 0) + 1);
     });
+    storyStatusBreakdown.forEach((count, status) =&gt; {
+      statusLabels.push(status);
+      statusCounts.push(count);
+    });
+    const statusTotalIssues = getStatusPercentageTotalIssues();
+    const statusTotalCenterPlugin = {
+      id: &#x27;statusTotalCenter&#x27;,
+      afterDraw(chart) {
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data || !meta.data.length) return;
+        const center = meta.data[0];
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.textAlign = &#x27;center&#x27;;
+        ctx.textBaseline = &#x27;middle&#x27;;
+        ctx.fillStyle = &#x27;#0f172a&#x27;;
+        ctx.font = &#x27;700 18px Inter, system-ui, sans-serif&#x27;;
+        ctx.fillText(statusTotalIssues.toLocaleString(), center.x, center.y - 8);
+        ctx.fillStyle = &#x27;#64748b&#x27;;
+        ctx.font = &#x27;600 11px Inter, system-ui, sans-serif&#x27;;
+        ctx.fillText(&#x27;Total Stories&#x27;, center.x, center.y + 12);
+        ctx.restore();
+      }
+    };
 
     // Enhanced color palette with gradients
     const pieColors = [
@@ -3146,14 +3279,14 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
               label: function(context) {
                 const label = context.label || &#x27;&#x27;;
                 const value = context.parsed || 0;
-                const total = context.dataset.data.reduce((a, b) =&gt; a + b, 0);
-                const percentage = ((value / total) * 100).toFixed(1);
-                return `${label}: ${value} (${percentage}%)`;
+                const percentage = statusTotalIssues ? ((value / statusTotalIssues) * 100).toFixed(1) : &#x27;0.0&#x27;;
+                return `${label}: ${value.toLocaleString()} / ${statusTotalIssues.toLocaleString()} (${percentage}%)`;
               }
             }
           }
         }
-      }
+      },
+      plugins: [statusTotalCenterPlugin]
     });
 
     const sprintEntries = Array.from(metrics.sprintBreakdown.entries());
@@ -3417,6 +3550,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   function loadData(data){
     try{
       window.__PARENT_JIRA_PAYLOAD__ = data;
+      window.__PARENT_JIRA_STATUS_PERCENTAGE_PAYLOAD__ = Array.isArray(arguments[1]) ? arguments[1] : null;
       window.dispatchEvent(new CustomEvent(&#x27;PARENT_JIRA_JSON_READY&#x27;));
       var up = document.getElementById(&#x27;upload-section&#x27;); if(up) up.style.display=&#x27;none&#x27;;
       var hd = document.querySelector(&#x27;header&#x27;); if(hd) hd.style.display=&#x27;none&#x27;;
@@ -3428,7 +3562,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   window.addEventListener(&#x27;message&#x27;, function(ev){
     var msg = ev &amp;&amp; ev.data;
     if(!msg || msg.type !== &#x27;JIRA_JSON&#x27;) return;
-    loadData(msg.payload);
+    loadData(msg.payload, msg.statusPercentagePayload);
   });
 })();
 &lt;/script&gt;
@@ -3689,6 +3823,23 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     frames.epic.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
     frames.sprint.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
   }
+
+  function getSourceForFrameWindow(frameWindow){
+    return Object.keys(sourceFrames).find((source) => {
+      const frames = sourceFrames[source];
+      return frames && frames.epic && frames.epic.contentWindow === frameWindow;
+    });
+  }
+
+  window.addEventListener('message', (event) => {
+    const msg = event && event.data;
+    if(!msg || msg.type !== 'EPIC_GLOBAL_FILTERED_JIRA_JSON') return;
+    const source = getSourceForFrameWindow(event.source);
+    if(!source || !sourceFrames[source]) return;
+    const payload = Array.isArray(msg.payload) ? msg.payload : [];
+    const statusPercentagePayload = Array.isArray(msg.statusPercentagePayload) ? msg.statusPercentagePayload : payload;
+    sourceFrames[source].sprint.contentWindow.postMessage({type:'JIRA_JSON', payload, statusPercentagePayload}, '*');
+  });
 
   function rehydrateSourceFrames(source){
     if(!payloadBySource[source]) return;
