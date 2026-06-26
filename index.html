@@ -580,16 +580,45 @@
       border-left: 4px solid #0B8F6A;
       transition: all 0.2s ease;
       background: linear-gradient(135deg, #ffffff, #f8fafc);
+      cursor: pointer;
     }
     .epic-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(11, 143, 106, 0.15);
       border-left-color: #10b981;
     }
+    .epic-card:focus-visible {
+      outline: 3px solid rgba(16, 185, 129, 0.35);
+      outline-offset: 3px;
+    }
     .epic-card.selected {
       border-left-color: #0B8F6A;
       background: linear-gradient(135deg, #E7F6F1, #f0fdf4);
       box-shadow: 0 4px 12px rgba(11, 143, 106, 0.15);
+    }
+    .epic-card input[type=&quot;checkbox&quot;] {
+      cursor: pointer;
+    }
+    .epic-filter-panel summary {
+      list-style: none;
+    }
+    .epic-filter-panel summary::-webkit-details-marker {
+      display: none;
+    }
+    .epic-filter-chevron {
+      transition: transform 0.2s ease;
+    }
+    .epic-filter-panel[open] .epic-filter-chevron {
+      transform: rotate(180deg);
+    }
+    .epic-filter-panel .hide-label {
+      display: none;
+    }
+    .epic-filter-panel[open] .show-label {
+      display: none;
+    }
+    .epic-filter-panel[open] .hide-label {
+      display: inline;
     }
     table {
       width: 100%;
@@ -1460,6 +1489,9 @@
       const card = document.createElement(&quot;div&quot;);
       const isSelected = selectedEpics.has(epic.id);
       card.className = `epic-card p-4 bg-white rounded-md shadow-sm ${isSelected ? &#x27;selected&#x27; : &#x27;&#x27;}`;
+      card.setAttribute(&quot;role&quot;, &quot;button&quot;);
+      card.setAttribute(&quot;tabindex&quot;, &quot;0&quot;);
+      card.setAttribute(&quot;aria-pressed&quot;, String(isSelected));
       const dueDate = epic.dueDate ? convertJiraDate(epic.dueDate) : &quot;No due date&quot;;
 
       card.innerHTML = `
@@ -1471,9 +1503,18 @@
             &lt;p class=&quot;text-sm text-gray-600&quot;&gt;Due: &lt;span class=&quot;font-medium&quot;&gt;${dueDate}&lt;/span&gt;&lt;/p&gt;
             &lt;p class=&quot;text-xs text-gray-500 mt-2&quot;&gt;${epic.stories.length} user stories&lt;/p&gt;
           &lt;/div&gt;
-          &lt;input type=&quot;checkbox&quot; class=&quot;mt-2&quot; data-epic-id=&quot;${epic.id}&quot; ${isSelected ? &#x27;checked&#x27; : &#x27;&#x27;} onchange=&quot;toggleEpic(&#x27;${epic.id}&#x27;, this.checked)&quot;&gt;
+          &lt;input type=&quot;checkbox&quot; class=&quot;mt-2&quot; data-epic-id=&quot;${epic.id}&quot; aria-label=&quot;Select epic&quot; ${isSelected ? &#x27;checked&#x27; : &#x27;&#x27;}&gt;
         &lt;/div&gt;
       `;
+      card.addEventListener(&#x27;click&#x27;, () =&gt; {
+        toggleEpic(epic.id, !selectedEpics.has(epic.id));
+      });
+      card.addEventListener(&#x27;keydown&#x27;, (event) =&gt; {
+        if (event.key === &#x27;Enter&#x27; || event.key === &#x27; &#x27;) {
+          event.preventDefault();
+          toggleEpic(epic.id, !selectedEpics.has(epic.id));
+        }
+      });
       epicList.appendChild(card);
     });
   }
@@ -1505,6 +1546,8 @@
       selectedEpics.add(epicId);
     } else {
       selectedEpics.delete(epicId);
+      delete epicFilterSelections[epicId];
+      delete filteredStoriesByEpic[epicId];
     }
     // Update the checkbox state in the filtered view
     const checkbox = document.querySelector(`input[data-epic-id=&quot;${epicId}&quot;]`);
@@ -1517,9 +1560,14 @@
         } else {
           card.classList.remove(&#x27;selected&#x27;);
         }
+        card.setAttribute(&#x27;aria-pressed&#x27;, String(checked));
       }
     }
     renderDetails();
+  }
+
+  function removeEpic(epicId) {
+    toggleEpic(epicId, false);
   }
 
   function clearEpicDetails() {
@@ -1681,16 +1729,27 @@
                 &lt;/div&gt;
               &lt;/div&gt;
             &lt;/div&gt;
+            &lt;button type=&quot;button&quot; onclick=&quot;removeEpic(&#x27;${id}&#x27;)&quot; class=&quot;ml-4 inline-flex h-9 w-9 items-center justify-center bg-white border border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300 rounded-full transition-all duration-200 shadow-sm flex-shrink-0&quot; aria-label=&quot;Remove selected epic&quot; title=&quot;Remove&quot;&gt;
+              &lt;svg class=&quot;w-4 h-4&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+                &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M6 18L18 6M6 6l12 12&quot;&gt;&lt;/path&gt;
+              &lt;/svg&gt;
+            &lt;/button&gt;
           &lt;/div&gt;
-          &lt;div class=&quot;mt-6 pt-6 border-t border-emerald-100&quot;&gt;
-            &lt;div class=&quot;flex items-center gap-2 mb-4&quot;&gt;
-              &lt;svg class=&quot;w-5 h-5 text-emerald-600&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+          &lt;details class=&quot;epic-filter-panel mt-4 pt-4 border-t border-emerald-100&quot;&gt;
+            &lt;summary class=&quot;inline-flex items-center gap-2 cursor-pointer select-none rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-50 transition-colors shadow-sm&quot; title=&quot;Show or hide story filters&quot;&gt;
+              &lt;svg class=&quot;w-4 h-4 text-emerald-600&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
                 &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z&quot;&gt;&lt;/path&gt;
               &lt;/svg&gt;
-              &lt;h4 class=&quot;text-sm font-semibold text-emerald-800&quot;&gt;Filter Stories&lt;/h4&gt;
+              &lt;span class=&quot;show-label&quot;&gt;Show filters&lt;/span&gt;
+              &lt;span class=&quot;hide-label&quot;&gt;Hide filters&lt;/span&gt;
+              &lt;svg class=&quot;epic-filter-chevron w-4 h-4 text-emerald-700 flex-shrink-0&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+                &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M19 9l-7 7-7-7&quot;&gt;&lt;/path&gt;
+              &lt;/svg&gt;
+            &lt;/summary&gt;
+            &lt;div class=&quot;mt-4&quot;&gt;
+              ${filters}
             &lt;/div&gt;
-            ${filters}
-          &lt;/div&gt;
+          &lt;/details&gt;
         &lt;/div&gt;
         ${table}
       `;
@@ -2284,7 +2343,7 @@ Reset
 &lt;h3 class=&quot;chart-title&quot;&gt;Issues by Sprint&lt;/h3&gt;
 &lt;canvas height=&quot;280&quot; id=&quot;sprintChart&quot;&gt;&lt;/canvas&gt;
 &lt;/div&gt;
-&lt;div class=&quot;chart-container&quot;&gt;
+&lt;div class=&quot;chart-container&quot; id=&quot;qaDocChartContainer&quot;&gt;
 &lt;h3 class=&quot;chart-title&quot;&gt;QA Issues: Test Case Doc by Sprint (&lt;span id=&quot;qaDocTotalIssues&quot;&gt;Attached: 0 | Not Attached: 0 | Total: 0&lt;/span&gt;)&lt;/h3&gt;
 &lt;canvas height=&quot;280&quot; id=&quot;qaDocStatusChart&quot;&gt;&lt;/canvas&gt;
 &lt;/div&gt;
@@ -2431,6 +2490,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   let filteredData = [];
   let statusPercentageData = [];
   let statusPercentageSourceData = [];
+  let currentSource = &#x27;SEJ&#x27;;
 
   // --- Injected: accept JSON from parent (shared upload/API) ---
   window.addEventListener(&#x27;PARENT_JIRA_JSON_READY&#x27;, function(){
@@ -2438,6 +2498,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
       const incoming = window.__PARENT_JIRA_PAYLOAD__;
       if(!incoming) return;
       const incomingStatusPercentage = window.__PARENT_JIRA_STATUS_PERCENTAGE_PAYLOAD__;
+      currentSource = window.__PARENT_JIRA_SOURCE__ || currentSource;
       jiraData = incoming;
       filteredData = Array.isArray(incoming) ? [...incoming] : [incoming];
       statusPercentageData = Array.isArray(incomingStatusPercentage)
@@ -2518,6 +2579,32 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     }));
   }
 
+  function compareTextAscending(a, b) {
+    return String(a || &quot;&quot;).localeCompare(String(b || &quot;&quot;), undefined, {
+      numeric: true,
+      sensitivity: &quot;base&quot;
+    });
+  }
+
+  function compareSprintDescending(a, b) {
+    const textA = String(a || &quot;&quot;);
+    const textB = String(b || &quot;&quot;);
+    const noSprintA = textA === NO_SPRINT_VALUE || textA === NO_SPRINT_LABEL;
+    const noSprintB = textB === NO_SPRINT_VALUE || textB === NO_SPRINT_LABEL;
+    if (noSprintA !== noSprintB) return noSprintA ? 1 : -1;
+
+    const numsA = textA.match(/\d+/g);
+    const numsB = textB.match(/\d+/g);
+    const sprintNumA = numsA ? Number(numsA[numsA.length - 1]) : Number.NEGATIVE_INFINITY;
+    const sprintNumB = numsB ? Number(numsB[numsB.length - 1]) : Number.NEGATIVE_INFINITY;
+    if (sprintNumA !== sprintNumB) return sprintNumB - sprintNumA;
+
+    return textB.localeCompare(textA, undefined, {
+      numeric: true,
+      sensitivity: &quot;base&quot;
+    });
+  }
+
   function getSelectedValues(selectEl) {
     if (!selectEl) return [];
     return Array.from(selectEl.selectedOptions).map((opt) =&gt; opt.value);
@@ -2552,6 +2639,19 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     Array.from(selectEl.options).forEach((opt) =&gt; {
       opt.selected = selectedSet.has(opt.value);
     });
+  }
+
+  function updateQaDocChartVisibility() {
+    const qaDocChartContainer = document.getElementById(&#x27;qaDocChartContainer&#x27;);
+    const hideForSej = currentSource === &#x27;SEJ&#x27;;
+    if (qaDocChartContainer) {
+      qaDocChartContainer.style.display = hideForSej ? &#x27;none&#x27; : &#x27;&#x27;;
+    }
+    if (hideForSej &amp;&amp; window.qaDocStatusChartInstance) {
+      window.qaDocStatusChartInstance.destroy();
+      window.qaDocStatusChartInstance = null;
+    }
+    return !hideForSej;
   }
 
   function handleFileSelect(e) {
@@ -2957,7 +3057,9 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     let totalAssignees = 0;
 
     const selectedSprints = getSelectedValues(sprintSelect);
-    metrics.sprintBreakdown.forEach((d, sprint) =&gt; {
+    Array.from(metrics.sprintBreakdown.entries())
+      .sort((a, b) =&gt; compareSprintDescending(a[0], b[0]))
+      .forEach(([sprint, d]) =&gt; {
       if (!selectedSprints.includes(&#x27;all&#x27;) &amp;&amp; !selectedSprints.includes(sprint)) {
         return;
       }
@@ -2998,7 +3100,9 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     let totalSprints = 0;
 
     const selectedEpics = getSelectedValues(epicSelect);
-    metrics.epicBreakdown.forEach((d, id) =&gt; {
+    Array.from(metrics.epicBreakdown.entries())
+      .sort((a, b) =&gt; compareTextAscending(a[1].name, b[1].name))
+      .forEach(([id, d]) =&gt; {
       if (!selectedEpics.includes(&#x27;all&#x27;) &amp;&amp; !selectedEpics.includes(id)) {
         return;
       }
@@ -3036,7 +3140,9 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     let totalEpics = 0;
 
     const selectedStatuses = getSelectedValues(statusSelect);
-    metrics.statusBreakdown.forEach((d, status) =&gt; {
+    Array.from(metrics.statusBreakdown.entries())
+      .sort((a, b) =&gt; compareTextAscending(a[0], b[0]))
+      .forEach(([status, d]) =&gt; {
       if (!selectedStatuses.includes(&#x27;all&#x27;) &amp;&amp; !selectedStatuses.includes(status)) {
         return;
       }
@@ -3070,7 +3176,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     header.innerHTML = &#x27;&#x27;;
     body.innerHTML = &#x27;&#x27;;
 
-    const statuses = Array.from(metrics.uniqueStatuses);
+    const statuses = sortFilterValues(metrics.uniqueStatuses);
     const selectedSprints = getSelectedValues(sprintSelect);
 
     const headerRow = document.createElement(&#x27;tr&#x27;);
@@ -3084,7 +3190,9 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     let totalByStatus = new Map();
     let grandTotal = 0;
 
-    metrics.sprintStatusMatrix.forEach((statusMap, sprint) =&gt; {
+    Array.from(metrics.sprintStatusMatrix.entries())
+      .sort((a, b) =&gt; compareSprintDescending(a[0], b[0]))
+      .forEach(([sprint, statusMap]) =&gt; {
       if (!selectedSprints.includes(&#x27;all&#x27;) &amp;&amp; !selectedSprints.includes(sprint)) {
         return;
       }
@@ -3120,7 +3228,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     header.innerHTML = &#x27;&#x27;;
     body.innerHTML = &#x27;&#x27;;
 
-    const statuses = Array.from(metrics.uniqueStatuses).sort();
+    const statuses = sortFilterValues(metrics.uniqueStatuses);
     const selectedEpics = getSelectedValues(epicSelect);
 
     const headerRow = document.createElement(&#x27;tr&#x27;);
@@ -3134,7 +3242,9 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     let totalByStatus = new Map();
     let grandTotal = 0;
 
-    metrics.epicBreakdown.forEach((d, id) =&gt; {
+    Array.from(metrics.epicBreakdown.entries())
+      .sort((a, b) =&gt; compareTextAscending(a[1].name, b[1].name))
+      .forEach(([id, d]) =&gt; {
       if (!selectedEpics.includes(&#x27;all&#x27;) &amp;&amp; !selectedEpics.includes(id)) {
         return;
       }
@@ -3168,6 +3278,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     if (window.statusChartInstance) window.statusChartInstance.destroy();
     if (window.sprintChartInstance) window.sprintChartInstance.destroy();
     if (window.qaDocStatusChartInstance) window.qaDocStatusChartInstance.destroy();
+    const shouldShowQaDocChart = updateQaDocChartVisibility();
 
     const statusLabels = [];
     const statusCounts = [];
@@ -3424,6 +3535,8 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
       }
     });
 
+    if (!shouldShowQaDocChart) return;
+
     const testCaseDocField = &quot;Custom field (Test Case Doc)&quot;;
     const qaSprintLabels = [];
     const qaSprintNonEmptyCounts = [];
@@ -3547,10 +3660,11 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
 
 &lt;script&gt;
 (function(){
-  function loadData(data){
+  function loadData(data, statusPercentagePayload, source){
     try{
       window.__PARENT_JIRA_PAYLOAD__ = data;
-      window.__PARENT_JIRA_STATUS_PERCENTAGE_PAYLOAD__ = Array.isArray(arguments[1]) ? arguments[1] : null;
+      window.__PARENT_JIRA_STATUS_PERCENTAGE_PAYLOAD__ = Array.isArray(statusPercentagePayload) ? statusPercentagePayload : null;
+      window.__PARENT_JIRA_SOURCE__ = source || &#x27;SEJ&#x27;;
       window.dispatchEvent(new CustomEvent(&#x27;PARENT_JIRA_JSON_READY&#x27;));
       var up = document.getElementById(&#x27;upload-section&#x27;); if(up) up.style.display=&#x27;none&#x27;;
       var hd = document.querySelector(&#x27;header&#x27;); if(hd) hd.style.display=&#x27;none&#x27;;
@@ -3562,7 +3676,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   window.addEventListener(&#x27;message&#x27;, function(ev){
     var msg = ev &amp;&amp; ev.data;
     if(!msg || msg.type !== &#x27;JIRA_JSON&#x27;) return;
-    loadData(msg.payload, msg.statusPercentagePayload);
+    loadData(msg.payload, msg.statusPercentagePayload, msg.source);
   });
 })();
 &lt;/script&gt;
@@ -3820,8 +3934,8 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     if(payload == null) return;
     const frames = sourceFrames[source];
     if(!frames) return;
-    frames.epic.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
-    frames.sprint.contentWindow.postMessage({type:'JIRA_JSON', payload}, '*');
+    frames.epic.contentWindow.postMessage({type:'JIRA_JSON', payload, source}, '*');
+    frames.sprint.contentWindow.postMessage({type:'JIRA_JSON', payload, source}, '*');
   }
 
   function getSourceForFrameWindow(frameWindow){
@@ -3838,7 +3952,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     if(!source || !sourceFrames[source]) return;
     const payload = Array.isArray(msg.payload) ? msg.payload : [];
     const statusPercentagePayload = Array.isArray(msg.statusPercentagePayload) ? msg.statusPercentagePayload : payload;
-    sourceFrames[source].sprint.contentWindow.postMessage({type:'JIRA_JSON', payload, statusPercentagePayload}, '*');
+    sourceFrames[source].sprint.contentWindow.postMessage({type:'JIRA_JSON', payload, statusPercentagePayload, source}, '*');
   });
 
   function rehydrateSourceFrames(source){
