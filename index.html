@@ -491,7 +491,7 @@
 <img src="https://s44783.pcdn.co/in/wp-content/uploads/sites/3/2023/10/emeritus-logo.png" alt="Emeritus" style="height:34px;width:auto;display:block;" />
 </div>
   <div class="brand-text">
-    <span class="brand-name">India Degrees Business</span>
+    <span class="brand-name">India Higher Education</span>
     <span class="brand-sub">JIRA Dashboards</span>
   </div>
 </div>
@@ -1760,10 +1760,11 @@
 
   function createFilterDropdown(label, field, epic) {
     const values = Array.from(new Set(epic.stories.map(s =&gt; s[field]))).filter(v =&gt; v &amp;&amp; v !== &quot;&quot;);
+    const orderedValues = field === &quot;status&quot; ? getOrderedStatuses(values) : values;
     const effectiveSelections = getEffectiveEpicSelections(epic);
     const selectedValues = effectiveSelections[field] || [];
     const allSelected = selectedValues.length === 0;
-    const options = values.map(v =&gt; {
+    const options = orderedValues.map(v =&gt; {
       const isSelected = selectedValues.includes(v) ? ' selected' : '';
       return `&lt;option value=&quot;${v}&quot;${isSelected}&gt;${v}&lt;/option&gt;`;
     }).join(&quot;&quot;);
@@ -1888,6 +1889,10 @@
       if (field === &quot;storyPoints&quot;) {
         valA = parseFloat(valA) || 0;
         valB = parseFloat(valB) || 0;
+      } else if (field === &quot;status&quot;) {
+        return current === &#x27;asc&#x27;
+          ? compareStatusLifecycle(valA, valB)
+          : compareStatusLifecycle(valB, valA);
       } else {
         valA = valA.toString().toLowerCase();
         valB = valB.toString().toLowerCase();
@@ -2586,6 +2591,43 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     });
   }
 
+  const statusLifecycleOrder = {
+    PEJ: [
+      &#x27;To Do&#x27;,
+      &#x27;In Progress&#x27;,
+      &#x27;Developer Execution Pending&#x27;,
+      &#x27;QA&#x27;,
+      &#x27;QA Execution&#x27;,
+      &#x27;QA Rejected&#x27;,
+      &#x27;QA Re-test&#x27;,
+      &#x27;Ready for Release&#x27;,
+      &#x27;Done&#x27;
+    ],
+    SEJ: [
+      &#x27;To Do&#x27;,
+      &#x27;In Progress&#x27;,
+      &#x27;Ready For Dev Testing&#x27;,
+      &#x27;Dev Testing In Progress&#x27;,
+      &#x27;Ready for Release&#x27;,
+      &#x27;Business Testing (Prod)&#x27;,
+      &#x27;Done&#x27;
+    ]
+  };
+
+  function compareStatusLifecycle(a, b) {
+    const activeOrder = statusLifecycleOrder[currentSource] || [];
+    const orderIndex = new Map(activeOrder.map((status, index) =&gt; [status.toLowerCase(), index]));
+    const aIndex = orderIndex.has(String(a || &#x27;&#x27;).toLowerCase()) ? orderIndex.get(String(a || &#x27;&#x27;).toLowerCase()) : Number.MAX_SAFE_INTEGER;
+    const bIndex = orderIndex.has(String(b || &#x27;&#x27;).toLowerCase()) ? orderIndex.get(String(b || &#x27;&#x27;).toLowerCase()) : Number.MAX_SAFE_INTEGER;
+
+    if (aIndex !== bIndex) return aIndex - bIndex;
+    return compareTextAscending(a, b);
+  }
+
+  function getOrderedStatuses(values) {
+    return Array.from(values || []).sort((a, b) =&gt; compareStatusLifecycle(a, b));
+  }
+
   function compareSprintDescending(a, b) {
     const textA = String(a || &quot;&quot;);
     const textB = String(b || &quot;&quot;);
@@ -2922,7 +2964,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     Array.from(metrics.uniqueEpics.entries())
       .sort((a, b) =&gt; String(a[1] || &quot;&quot;).localeCompare(String(b[1] || &quot;&quot;), undefined, { numeric: true, sensitivity: &quot;base&quot; }))
       .forEach(([id, name]) =&gt; addSelectOption(epicSelect, id, name));
-    sortFilterValues(metrics.uniqueStatuses).forEach((st) =&gt; addSelectOption(statusSelect, st, st));
+    getOrderedStatuses(metrics.uniqueStatuses).forEach((st) =&gt; addSelectOption(statusSelect, st, st));
     sortFilterValues(metrics.uniquePMs).forEach((pm) =&gt; addSelectOption(pmSelect, pm, pm));
     sortFilterValues(metrics.uniqueIssueTypes).forEach((t) =&gt; addSelectOption(issueTypeSelect, t, t));
 
@@ -3035,6 +3077,19 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     sortedRows.forEach(row =&gt; tbody.appendChild(row));
   };
 
+  function setDefaultOverviewSort(tableId, columnIndex, direction = &#x27;asc&#x27;) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+
+    const headers = table.querySelectorAll(&#x27;th&#x27;);
+    headers.forEach(th =&gt; th.classList.remove(&#x27;sort-asc&#x27;, &#x27;sort-desc&#x27;));
+
+    const targetHeader = headers[columnIndex];
+    if (targetHeader) {
+      targetHeader.classList.add(direction === &#x27;desc&#x27; ? &#x27;sort-desc&#x27; : &#x27;sort-asc&#x27;);
+    }
+  }
+
   function updateMetricsUI(metrics) {
     document.getElementById(&#x27;unique-sprints&#x27;).textContent = metrics.uniqueSprints.size;
     document.getElementById(&#x27;unique-epics&#x27;).textContent = metrics.uniqueEpics.size;
@@ -3140,12 +3195,13 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     let totalEpics = 0;
 
     const selectedStatuses = getSelectedValues(statusSelect);
-    Array.from(metrics.statusBreakdown.entries())
-      .sort((a, b) =&gt; compareTextAscending(a[0], b[0]))
-      .forEach(([status, d]) =&gt; {
-      if (!selectedStatuses.includes(&#x27;all&#x27;) &amp;&amp; !selectedStatuses.includes(status)) {
-        return;
-      }
+    const sortedStatuses = Array.from(metrics.statusBreakdown.entries())
+      .filter(([status]) =&gt; selectedStatuses.includes(&#x27;all&#x27;) || selectedStatuses.includes(status))
+      .sort((a, b) =&gt; compareStatusLifecycle(a[0], b[0]));
+
+    setDefaultOverviewSort(&#x27;status-breakdown-table&#x27;, 0, &#x27;asc&#x27;);
+
+    sortedStatuses.forEach(([status, d]) =&gt; {
       const row = document.createElement(&#x27;tr&#x27;);
       row.innerHTML = `
         &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900&quot;&gt;${status}&lt;/td&gt;
@@ -3176,7 +3232,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     header.innerHTML = &#x27;&#x27;;
     body.innerHTML = &#x27;&#x27;;
 
-    const statuses = sortFilterValues(metrics.uniqueStatuses);
+    const statuses = getOrderedStatuses(metrics.uniqueStatuses);
     const selectedSprints = getSelectedValues(sprintSelect);
 
     const headerRow = document.createElement(&#x27;tr&#x27;);
@@ -3228,7 +3284,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     header.innerHTML = &#x27;&#x27;;
     body.innerHTML = &#x27;&#x27;;
 
-    const statuses = sortFilterValues(metrics.uniqueStatuses);
+    const statuses = getOrderedStatuses(metrics.uniqueStatuses);
     const selectedEpics = getSelectedValues(epicSelect);
 
     const headerRow = document.createElement(&#x27;tr&#x27;);
@@ -3280,17 +3336,13 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     if (window.qaDocStatusChartInstance) window.qaDocStatusChartInstance.destroy();
     const shouldShowQaDocChart = updateQaDocChartVisibility();
 
-    const statusLabels = [];
-    const statusCounts = [];
     const storyStatusBreakdown = new Map();
     filteredData.forEach((issue) =&gt; {
       if (!isStoryIssue(issue) || !issue.Status) return;
       storyStatusBreakdown.set(issue.Status, (storyStatusBreakdown.get(issue.Status) || 0) + 1);
     });
-    storyStatusBreakdown.forEach((count, status) =&gt; {
-      statusLabels.push(status);
-      statusCounts.push(count);
-    });
+    const statusLabels = getOrderedStatuses(storyStatusBreakdown.keys());
+    const statusCounts = statusLabels.map((status) =&gt; storyStatusBreakdown.get(status) || 0);
     const statusTotalIssues = getStatusPercentageTotalIssues();
     const statusTotalCenterPlugin = {
       id: &#x27;statusTotalCenter&#x27;,
