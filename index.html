@@ -968,6 +968,54 @@
     return &#x27;bg-gray-100 text-gray-800&#x27;;
   }
 
+  const epicStatusLifecycleOrder = {
+    PEJ: [
+      &#x27;To Do&#x27;,
+      &#x27;In Progress&#x27;,
+      &#x27;Developer Execution Pending&#x27;,
+      &#x27;QA&#x27;,
+      &#x27;QA Execution&#x27;,
+      &#x27;QA Rejected&#x27;,
+      &#x27;QA Re-test&#x27;,
+      &#x27;Ready for Release&#x27;,
+      &#x27;Done&#x27;
+    ],
+    SEJ: [
+      &#x27;To Do&#x27;,
+      &#x27;In Progress&#x27;,
+      &#x27;Ready For Dev Testing&#x27;,
+      &#x27;Dev Testing In Progress&#x27;,
+      &#x27;Ready for Release&#x27;,
+      &#x27;Business Testing (Prod)&#x27;,
+      &#x27;Done&#x27;
+    ]
+  };
+
+  function getEpicCurrentSource() {
+    return window.__PARENT_JIRA_SOURCE__ || &#x27;SEJ&#x27;;
+  }
+
+  function compareEpicTextAscending(a, b) {
+    return String(a || &quot;&quot;).localeCompare(String(b || &quot;&quot;), undefined, {
+      numeric: true,
+      sensitivity: &quot;base&quot;
+    });
+  }
+
+  function compareEpicStatusLifecycle(a, b) {
+    const activeOrder = epicStatusLifecycleOrder[getEpicCurrentSource()] || [];
+    const orderIndex = new Map(activeOrder.map((status, index) =&gt; [status.toLowerCase(), index]));
+    const aIndex = orderIndex.has(String(a || &#x27;&#x27;).toLowerCase()) ? orderIndex.get(String(a || &#x27;&#x27;).toLowerCase()) : Number.MAX_SAFE_INTEGER;
+    const bIndex = orderIndex.has(String(b || &#x27;&#x27;).toLowerCase()) ? orderIndex.get(String(b || &#x27;&#x27;).toLowerCase()) : Number.MAX_SAFE_INTEGER;
+
+    if (aIndex !== bIndex) return aIndex - bIndex;
+    return compareEpicTextAscending(a, b);
+  }
+
+  function getOrderedStatuses(values) {
+    return Array.from(values || []).sort((a, b) =&gt; compareEpicStatusLifecycle(a, b));
+  }
+
   document.getElementById(&#x27;fileInput&#x27;).addEventListener(&#x27;change&#x27;, handleFileSelect);
   document.getElementById(&#x27;drop-area&#x27;).addEventListener(&#x27;drop&#x27;, handleDrop, false);
   suppressListboxTextSelection(document.getElementById(&#x27;pm-filter&#x27;));
@@ -1506,7 +1554,10 @@
           &lt;input type=&quot;checkbox&quot; class=&quot;mt-2&quot; data-epic-id=&quot;${epic.id}&quot; aria-label=&quot;Select epic&quot; ${isSelected ? &#x27;checked&#x27; : &#x27;&#x27;}&gt;
         &lt;/div&gt;
       `;
-      card.addEventListener(&#x27;click&#x27;, () =&gt; {
+      card.addEventListener(&#x27;click&#x27;, (event) =&gt; {
+        if (event.target.closest(&#x27;input, button, select, option, summary&#x27;)) {
+          return;
+        }
         toggleEpic(epic.id, !selectedEpics.has(epic.id));
       });
       card.addEventListener(&#x27;keydown&#x27;, (event) =&gt; {
@@ -1515,6 +1566,16 @@
           toggleEpic(epic.id, !selectedEpics.has(epic.id));
         }
       });
+      const checkbox = card.querySelector(`input[data-epic-id=&quot;${epic.id}&quot;]`);
+      if (checkbox) {
+        checkbox.addEventListener(&#x27;click&#x27;, (event) =&gt; {
+          event.stopPropagation();
+        });
+        checkbox.addEventListener(&#x27;change&#x27;, (event) =&gt; {
+          event.stopPropagation();
+          toggleEpic(epic.id, event.target.checked);
+        });
+      }
       epicList.appendChild(card);
     });
   }
@@ -1891,8 +1952,8 @@
         valB = parseFloat(valB) || 0;
       } else if (field === &quot;status&quot;) {
         return current === &#x27;asc&#x27;
-          ? compareStatusLifecycle(valA, valB)
-          : compareStatusLifecycle(valB, valA);
+          ? compareEpicStatusLifecycle(valA, valB)
+          : compareEpicStatusLifecycle(valB, valA);
       } else {
         valA = valA.toString().toLowerCase();
         valB = valB.toString().toLowerCase();
