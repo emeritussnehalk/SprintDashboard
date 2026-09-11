@@ -2144,6 +2144,73 @@
       background: linear-gradient(180deg, #0B8F6A, #10b981);
       border-radius: 2px;
     }
+    .status-chart-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .status-chart-heading .chart-title {
+      margin-bottom: 1rem;
+    }
+    .status-chart-filter-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 0 0 auto;
+      min-height: 32px;
+      margin-bottom: 1rem;
+      padding: 0.4rem 0.55rem 0.4rem 0.7rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #475569;
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+    .status-chart-filter-toggle:hover {
+      border-color: #10b981;
+      color: #047857;
+    }
+    .status-chart-filter-toggle[aria-pressed=&quot;true&quot;] {
+      border-color: #059669;
+      background: #ecfdf5;
+      color: #047857;
+    }
+    .status-chart-filter-switch {
+      position: relative;
+      display: inline-block;
+      width: 27px;
+      height: 16px;
+      border-radius: 999px;
+      background: #cbd5e1;
+      transition: background-color 0.2s ease;
+    }
+    .status-chart-filter-switch::after {
+      content: &#x27;&#x27;;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2);
+      transition: transform 0.2s ease;
+    }
+    .status-chart-filter-toggle[aria-pressed=&quot;true&quot;] .status-chart-filter-switch {
+      background: #059669;
+    }
+    .status-chart-filter-toggle[aria-pressed=&quot;true&quot;] .status-chart-filter-switch::after {
+      transform: translateX(11px);
+    }
+    @media (max-width: 480px) {
+      .status-chart-heading {
+        flex-wrap: wrap;
+      }
+    }
     .sprint-trend-container {
       position: relative;
       overflow: hidden;
@@ -2616,7 +2683,13 @@ Reset
 &lt;/div&gt;
 &lt;div class=&quot;grid grid-cols-1 md:grid-cols-2 gap-6&quot;&gt;
 &lt;div class=&quot;chart-container&quot;&gt;
+&lt;div class=&quot;status-chart-heading&quot;&gt;
 &lt;h3 class=&quot;chart-title&quot;&gt;Issues by Status&lt;/h3&gt;
+&lt;button type=&quot;button&quot; class=&quot;status-chart-filter-toggle&quot; id=&quot;statusStoryFilterToggle&quot; aria-pressed=&quot;false&quot; title=&quot;Apply the Story-only filter and exclude the latest two sprints&quot;&gt;
+&lt;span&gt;Story filter&lt;/span&gt;
+&lt;span class=&quot;status-chart-filter-switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+&lt;/button&gt;
+&lt;/div&gt;
 &lt;canvas height=&quot;280&quot; id=&quot;statusChart&quot;&gt;&lt;/canvas&gt;
 &lt;/div&gt;
 &lt;div class=&quot;chart-container&quot; id=&quot;qaDocChartContainer&quot;&gt;
@@ -2657,6 +2730,7 @@ Reset
 &lt;tr&gt;
 &lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Sprint&lt;/th&gt;
 &lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Total Stories&lt;/th&gt;
+&lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Avg Story Size&lt;/th&gt;
 &lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Unique Epics&lt;/th&gt;
 &lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Total Story Points&lt;/th&gt;
 &lt;th class=&quot;px-6 py-4 text-left text-xs font-bold text-emerald-800 uppercase tracking-wider&quot; onclick=&quot;sortOverviewTable(this)&quot;&gt;Assignees&lt;/th&gt;
@@ -2758,6 +2832,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
 
   const applyFiltersBtn = document.getElementById(&#x27;apply-filters&#x27;);
   const resetFiltersBtn = document.getElementById(&#x27;reset-filters&#x27;);
+  const statusStoryFilterToggle = document.getElementById(&#x27;statusStoryFilterToggle&#x27;);
 
   const NO_SPRINT_VALUE = &#x27;__NO_SPRINT__&#x27;;
   const NO_SPRINT_LABEL = &#x27;No Sprint&#x27;;
@@ -2768,6 +2843,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   let statusPercentageData = [];
   let statusPercentageSourceData = [];
   let currentSource = &#x27;SEJ&#x27;;
+  let statusStoryFilterEnabled = false;
 
   // --- Injected: accept JSON from parent (shared upload/API) ---
   window.addEventListener(&#x27;PARENT_JIRA_JSON_READY&#x27;, function(){
@@ -2811,6 +2887,12 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
 
   applyFiltersBtn.addEventListener(&#x27;click&#x27;, applyFilters);
   resetFiltersBtn.addEventListener(&#x27;click&#x27;, resetFilters);
+  statusStoryFilterToggle.addEventListener(&#x27;click&#x27;, () =&gt; {
+    setStatusStoryFilter(!statusStoryFilterEnabled);
+    const selectedSprints = getSelectedValues(sprintSelect);
+    const metrics = calculateMetrics(filteredData, { selectedSprints });
+    createCharts(metrics);
+  });
 
   sprintSelect = document.getElementById(&#x27;sprint-filter&#x27;);
   epicSelect = document.getElementById(&#x27;epic-filter&#x27;);
@@ -2930,6 +3012,59 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
 
   function isStoryIssue(issue) {
     return String(getIssueType(issue) || &quot;&quot;).trim().toLowerCase() === &quot;story&quot;;
+  }
+
+  function normalizeProjectName(value) {
+    if (value &amp;&amp; typeof value === &#x27;object&#x27;) {
+      value = value.key || value.name || value.id || &#x27;&#x27;;
+    }
+    return String(value || &#x27;&#x27;)
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, &#x27;_&#x27;);
+  }
+
+  function matchesStatusStoryFilterProject(issue) {
+    const targetProject = &#x27;portal_em_jforce&#x27;;
+    const projectValues = [
+      issue.Project,
+      issue.project,
+      issue[&#x27;Project Key&#x27;],
+      issue[&#x27;Project key&#x27;],
+      issue[&#x27;Project Name&#x27;],
+      issue[&#x27;Project name&#x27;]
+    ].filter(value =&gt; value != null &amp;&amp; String(value).trim());
+
+    if (projectValues.length) {
+      return projectValues.some(value =&gt; normalizeProjectName(value) === targetProject);
+    }
+
+    // Existing payloads may not include a Project field; PEJ is the portal_em_jforce source.
+    return currentSource === &#x27;PEJ&#x27;;
+  }
+
+  function getStatusStoryFilterData() {
+    const projectStories = jiraData.filter(issue =&gt;
+      isStoryIssue(issue) &amp;&amp; matchesStatusStoryFilterProject(issue)
+    );
+    const orderedSprints = Array.from(new Set(
+      projectStories.flatMap(issue =&gt; getIndividualSprints(issue.Sprint))
+    )).sort(compareSprintDescending);
+    const excludedLatestSprints = new Set(orderedSprints.slice(0, 2));
+
+    return projectStories.filter(issue =&gt; {
+      const issueSprints = getIndividualSprints(issue.Sprint);
+      return issueSprints.length &gt; 0 &amp;&amp;
+        issueSprints.some(sprint =&gt; !excludedLatestSprints.has(sprint));
+    });
+  }
+
+  function setStatusStoryFilter(enabled) {
+    statusStoryFilterEnabled = Boolean(enabled);
+    statusStoryFilterToggle.setAttribute(&#x27;aria-pressed&#x27;, String(statusStoryFilterEnabled));
+    statusStoryFilterToggle.title = statusStoryFilterEnabled
+      ? &#x27;Story filter is on: portal_em_jforce Stories, excluding the latest two sprints and No Sprint&#x27;
+      : &#x27;Apply the Story-only filter and exclude the latest two sprints&#x27;;
   }
 
   function getIndividualSprints(value) {
@@ -3271,6 +3406,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   }
 
   function applyFilters() {
+    setStatusStoryFilter(false);
     const sprints = getSelectedValues(sprintSelect);
     const epics = getSelectedValues(epicSelect);
     const statuses = getSelectedValues(statusSelect);
@@ -3401,32 +3537,29 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     const tbody = document.getElementById(&#x27;sprint-table-body&#x27;);
     tbody.innerHTML = &#x27;&#x27;;
 
-    let totalStories = 0;
-    let totalEpics = 0;
-    let totalSP = 0;
-    let totalAssignees = 0;
-
     const selectedSprints = getSelectedValues(sprintSelect);
-    Array.from(metrics.sprintBreakdown.entries())
+    const sprintRows = Array.from(metrics.sprintBreakdown.entries())
       .sort((a, b) =&gt; compareSprintDescending(a[0], b[0]))
-      .forEach(([sprint, d]) =&gt; {
-      if (!selectedSprints.includes(&#x27;all&#x27;) &amp;&amp; !selectedSprints.includes(sprint)) {
-        return;
-      }
+      .filter(([sprint]) =&gt; selectedSprints.includes(&#x27;all&#x27;) || selectedSprints.includes(sprint));
+    const totalStories = sprintRows.reduce((sum, [, d]) =&gt; sum + d.totalStories, 0);
+    const totalEpics = sprintRows.reduce((sum, [, d]) =&gt; sum + d.uniqueEpics.size, 0);
+    const totalSP = sprintRows.reduce((sum, [, d]) =&gt; sum + d.totalStoryPoints, 0);
+    const totalAssignees = sprintRows.reduce((sum, [, d]) =&gt; sum + d.assignees.size, 0);
+    const overallAverageStorySize = totalStories ? totalSP / totalStories : 0;
+    const formatAverageStorySize = (value) =&gt; Number(value || 0).toFixed(2);
+
+    sprintRows.forEach(([sprint, d]) =&gt; {
+      const averageStorySize = d.totalStories ? d.totalStoryPoints / d.totalStories : 0;
       const row = document.createElement(&#x27;tr&#x27;);
       row.innerHTML = `
         &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900&quot;&gt;${sprint}&lt;/td&gt;
         &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;${d.totalStories}&lt;/td&gt;
+        &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;${formatAverageStorySize(averageStorySize)}&lt;/td&gt;
         &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;${d.uniqueEpics.size}&lt;/td&gt;
         &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;${d.totalStoryPoints}&lt;/td&gt;
         &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;${d.assignees.size}&lt;/td&gt;
       `;
       tbody.appendChild(row);
-
-      totalStories += d.totalStories;
-      totalEpics += d.uniqueEpics.size;
-      totalSP += d.totalStoryPoints;
-      totalAssignees += d.assignees.size;
     });
 
     const totalRow = document.createElement(&#x27;tr&#x27;);
@@ -3434,6 +3567,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     totalRow.innerHTML = `
       &lt;td class=&quot;px-6 py-4 font-bold text-emerald-800&quot;&gt;TOTAL&lt;/td&gt;
       &lt;td class=&quot;px-6 py-4 font-bold text-emerald-800&quot;&gt;${totalStories}&lt;/td&gt;
+      &lt;td class=&quot;px-6 py-4 font-bold text-emerald-800&quot;&gt;${formatAverageStorySize(overallAverageStorySize)}&lt;/td&gt;
       &lt;td class=&quot;px-6 py-4 font-bold text-emerald-800&quot;&gt;${totalEpics}&lt;/td&gt;
       &lt;td class=&quot;px-6 py-4 font-bold text-emerald-800&quot;&gt;${totalSP}&lt;/td&gt;
       &lt;td class=&quot;px-6 py-4 font-bold text-emerald-800&quot;&gt;${totalAssignees}&lt;/td&gt;
@@ -3631,14 +3765,19 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     if (window.qaDocStatusChartInstance) window.qaDocStatusChartInstance.destroy();
     const shouldShowQaDocChart = updateQaDocChartVisibility();
 
+    const statusChartData = statusStoryFilterEnabled
+      ? getStatusStoryFilterData()
+      : filteredData;
     const storyStatusBreakdown = new Map();
-    filteredData.forEach((issue) =&gt; {
+    statusChartData.forEach((issue) =&gt; {
       if (!isStoryIssue(issue) || !issue.Status) return;
       storyStatusBreakdown.set(issue.Status, (storyStatusBreakdown.get(issue.Status) || 0) + 1);
     });
     const statusLabels = getOrderedStatuses(storyStatusBreakdown.keys());
     const statusCounts = statusLabels.map((status) =&gt; storyStatusBreakdown.get(status) || 0);
-    const statusTotalIssues = getStatusPercentageTotalIssues();
+    const statusTotalIssues = statusStoryFilterEnabled
+      ? statusChartData.length
+      : getStatusPercentageTotalIssues();
     const statusTotalCenterPlugin = {
       id: &#x27;statusTotalCenter&#x27;,
       afterDraw(chart) {

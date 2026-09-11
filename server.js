@@ -321,10 +321,14 @@ function mapIssueToRecord(issue, fieldMap) {
   const fields = issue.fields || {};
   const parent = fields.parent || {};
   const parentFields = parent.fields || {};
+  const project = fields.project || {};
   const parentSummary = parentFields.summary || parent.summary || parent.key || '';
 
   return {
     'Issue Type': extractDisplayValue(fields.issuetype && (fields.issuetype.name || fields.issuetype)),
+    Project: extractDisplayValue(project.key || project.name || project),
+    'Project Key': extractDisplayValue(project.key),
+    'Project Name': extractDisplayValue(project.name),
     'Issue key': issue.key || '',
     'Parent key': parent.key || '',
     'Parent summary': extractDisplayValue(parentSummary),
