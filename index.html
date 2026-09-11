@@ -2144,6 +2144,185 @@
       background: linear-gradient(180deg, #0B8F6A, #10b981);
       border-radius: 2px;
     }
+    .sprint-trend-container {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #ffffff 0%, #fbfdff 100%);
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+    .sprint-trend-title {
+      color: #0f172a;
+      font-size: 1.65rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .sprint-trend-title::before {
+      content: &#x27;&#x27;;
+      display: inline-block;
+      width: 7px;
+      height: 38px;
+      margin-right: 14px;
+      vertical-align: -8px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #10b981, #059669);
+    }
+    .sprint-trend-subtitle {
+      margin: 0.45rem 0 1.25rem 21px;
+      color: #64748b;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    .sprint-trend-stat {
+      min-height: 118px;
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+    }
+    .sprint-trend-stat-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .sprint-trend-stat-value {
+      margin-top: 0.35rem;
+      font-size: 2.05rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .sprint-trend-stat-copy {
+      margin-top: 0.5rem;
+      color: #64748b;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .sprint-trend-stat.stories {
+      background: linear-gradient(135deg, #eff6ff, #e9f1ff);
+      color: #2563eb;
+    }
+    .sprint-trend-stat.size {
+      background: linear-gradient(135deg, #ecfdf5, #e7f8f1);
+      color: #059669;
+    }
+    .sprint-trend-stat.total {
+      background: linear-gradient(135deg, #f5f3ff, #efedff);
+      color: #4f46e5;
+    }
+    .sprint-trend-chart-scroll {
+      width: 100%;
+      overflow: hidden;
+      overflow-y: hidden;
+    }
+    .sprint-trend-chart-wrap {
+      position: relative;
+      width: 100%;
+      min-width: 100%;
+      height: clamp(340px, 30vw, 430px);
+    }
+    .sprint-trend-chart-wrap canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    .sprint-trend-tooltip {
+      position: absolute;
+      z-index: 3;
+      min-width: 210px;
+      padding: 0.9rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+      color: #334155;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.12s ease;
+      white-space: nowrap;
+    }
+    .sprint-trend-tooltip-title {
+      margin-bottom: 0.35rem;
+      color: #0f172a;
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+    .sprint-trend-tooltip-row {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .sprint-trend-tooltip-dot {
+      width: 10px;
+      height: 10px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+    }
+    .sprint-trend-tooltip-dot.stories { background: #5b5cf6; }
+    .sprint-trend-tooltip-dot.points { background: #94a3b8; }
+    .sprint-trend-tooltip-dot.size { background: #10b981; }
+    .sprint-trend-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem 1.5rem;
+      margin-top: 1rem;
+      padding: 0.8rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #ffffff;
+      color: #334155;
+      font-size: 0.82rem;
+      font-weight: 650;
+    }
+    .sprint-trend-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      white-space: nowrap;
+    }
+    .sprint-trend-legend-swatch {
+      display: inline-block;
+      width: 28px;
+      flex: 0 0 auto;
+    }
+    .sprint-trend-legend-swatch.stories {
+      height: 14px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, #5b5cf6, #7c7cff);
+    }
+    .sprint-trend-legend-swatch.story-size {
+      position: relative;
+      height: 3px;
+      border-radius: 999px;
+      background: #10b981;
+    }
+    .sprint-trend-legend-swatch.story-size::after {
+      content: &#x27;&#x27;;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 9px;
+      height: 9px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 0 1px #10b981;
+      transform: translate(-50%, -50%);
+    }
+    .sprint-trend-legend-swatch.avg-stories,
+    .sprint-trend-legend-swatch.avg-size {
+      height: 0;
+      border-top: 2px dashed;
+    }
+    .sprint-trend-legend-swatch.avg-stories { border-color: #2563eb; }
+    .sprint-trend-legend-swatch.avg-size { border-color: #10b981; }
+    @media (max-width: 640px) {
+      .sprint-trend-legend {
+        justify-content: flex-start;
+        font-size: 0.75rem;
+      }
+    }
     /* Native multi-select styling for Sprint with IssueType filters */
     .filter-select-shell {
       border: 2px solid #86efac;
@@ -2400,18 +2579,50 @@ Reset
 &lt;!-- Data Visualization --&gt;
 &lt;div class=&quot;mb-10&quot;&gt;
 &lt;h2 class=&quot;text-2xl font-bold text-gray-800 mb-6&quot;&gt;Data Visualization&lt;/h2&gt;
+&lt;div class=&quot;grid grid-cols-1 gap-6&quot;&gt;
+&lt;div class=&quot;sprint-trend-container&quot;&gt;
+&lt;div&gt;
+&lt;h3 class=&quot;sprint-trend-title&quot;&gt;Sprint Load &amp;amp; Story Size Trend&lt;/h3&gt;
+&lt;p class=&quot;sprint-trend-subtitle&quot;&gt;Number of issues per sprint and average story size&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;grid grid-cols-1 md:grid-cols-3 gap-4 mb-6&quot;&gt;
+&lt;div class=&quot;sprint-trend-stat stories&quot;&gt;
+&lt;p class=&quot;sprint-trend-stat-label&quot;&gt;Average Stories per Sprint&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-value&quot; id=&quot;sprintTrendAverageStories&quot;&gt;0&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-copy&quot; id=&quot;sprintTrendAverageStoriesCopy&quot;&gt;across 0 sprints&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sprint-trend-stat size&quot;&gt;
+&lt;p class=&quot;sprint-trend-stat-label&quot;&gt;Average Story Size&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-value&quot; id=&quot;sprintTrendAverageSize&quot;&gt;0.0&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-copy&quot; id=&quot;sprintTrendAverageSizeCopy&quot;&gt;across all sprints&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sprint-trend-stat total&quot;&gt;
+&lt;p class=&quot;sprint-trend-stat-label&quot;&gt;Total Stories&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-value&quot; id=&quot;sprintTrendTotalStories&quot;&gt;0&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-copy&quot; id=&quot;sprintTrendTotalStoriesCopy&quot;&gt;across 0 sprints&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sprint-trend-chart-scroll&quot; id=&quot;sprintTrendChartScroll&quot;&gt;
+&lt;div class=&quot;sprint-trend-chart-wrap&quot; id=&quot;sprintTrendChartWrap&quot;&gt;
+&lt;canvas height=&quot;400&quot; id=&quot;sprintChart&quot;&gt;&lt;/canvas&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sprint-trend-legend&quot; aria-label=&quot;Sprint trend chart legend&quot;&gt;
+&lt;span class=&quot;sprint-trend-legend-item&quot;&gt;&lt;span class=&quot;sprint-trend-legend-swatch stories&quot;&gt;&lt;/span&gt;Number of Issues (Stories)&lt;/span&gt;
+&lt;span class=&quot;sprint-trend-legend-item&quot;&gt;&lt;span class=&quot;sprint-trend-legend-swatch story-size&quot;&gt;&lt;/span&gt;Average Story Size per Sprint&lt;/span&gt;
+&lt;span class=&quot;sprint-trend-legend-item&quot;&gt;&lt;span class=&quot;sprint-trend-legend-swatch avg-stories&quot;&gt;&lt;/span&gt;&lt;span id=&quot;sprintTrendLegendAverageStories&quot;&gt;Avg Stories per Sprint&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;sprint-trend-legend-item&quot;&gt;&lt;span class=&quot;sprint-trend-legend-swatch avg-size&quot;&gt;&lt;/span&gt;&lt;span id=&quot;sprintTrendLegendAverageSize&quot;&gt;Overall Avg Story Size&lt;/span&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
 &lt;div class=&quot;grid grid-cols-1 md:grid-cols-2 gap-6&quot;&gt;
 &lt;div class=&quot;chart-container&quot;&gt;
 &lt;h3 class=&quot;chart-title&quot;&gt;Issues by Status&lt;/h3&gt;
 &lt;canvas height=&quot;280&quot; id=&quot;statusChart&quot;&gt;&lt;/canvas&gt;
 &lt;/div&gt;
-&lt;div class=&quot;chart-container&quot;&gt;
-&lt;h3 class=&quot;chart-title&quot;&gt;Issues by Sprint&lt;/h3&gt;
-&lt;canvas height=&quot;280&quot; id=&quot;sprintChart&quot;&gt;&lt;/canvas&gt;
-&lt;/div&gt;
 &lt;div class=&quot;chart-container&quot; id=&quot;qaDocChartContainer&quot;&gt;
 &lt;h3 class=&quot;chart-title&quot;&gt;QA Issues: Test Case Doc by Sprint (&lt;span id=&quot;qaDocTotalIssues&quot;&gt;Attached: 0 | Not Attached: 0 | Total: 0&lt;/span&gt;)&lt;/h3&gt;
 &lt;canvas height=&quot;280&quot; id=&quot;qaDocStatusChart&quot;&gt;&lt;/canvas&gt;
+&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -2721,12 +2932,27 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     return String(getIssueType(issue) || &quot;&quot;).trim().toLowerCase() === &quot;story&quot;;
   }
 
+  function getIndividualSprints(value) {
+    return String(value || &quot;&quot;)
+      .split(/\s*,\s*/)
+      .map((sprint) =&gt; sprint.trim())
+      .filter(Boolean);
+  }
+
+  function matchesSelectedSprints(issue, selectedSprints) {
+    if (selectedSprints.includes(&#x27;all&#x27;)) return true;
+    const issueSprints = getIndividualSprints(issue.Sprint);
+    return issueSprints.length
+      ? issueSprints.some((sprint) =&gt; selectedSprints.includes(sprint))
+      : selectedSprints.includes(NO_SPRINT_VALUE);
+  }
+
   function getStatusPercentageBaseData() {
     const sprints = getSelectedValues(sprintSelect);
 
     const sourceData = statusPercentageSourceData.length ? statusPercentageSourceData : jiraData;
     return sourceData.filter(issue =&gt; {
-      const matchS = sprints.includes(&#x27;all&#x27;) || (issue.Sprint ? sprints.includes(issue.Sprint) : sprints.includes(NO_SPRINT_VALUE));
+      const matchS = matchesSelectedSprints(issue, sprints);
       return matchS &amp;&amp; isStoryIssue(issue);
     });
   }
@@ -2910,7 +3136,8 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     noDataMessage.classList.add(&#x27;hidden&#x27;);
   }
 
-  function calculateMetrics(data) {
+  function calculateMetrics(data, options = {}) {
+    const selectedSprints = options.selectedSprints || [&#x27;all&#x27;];
     const metrics = {
       uniqueSprints: new Set(),
       uniqueEpics: new Map(),
@@ -2927,6 +3154,10 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
 
     data.forEach(issue =&gt; {
       let sp = normalizeStoryPoints(issue[&quot;Custom field (Story Points)&quot;]);
+      const issueSprints = getIndividualSprints(issue.Sprint);
+      const scopedSprints = selectedSprints.includes(&#x27;all&#x27;)
+        ? issueSprints
+        : issueSprints.filter((sprint) =&gt; selectedSprints.includes(sprint));
 
       const issueType = getIssueType(issue);
       if (issueType) metrics.uniqueIssueTypes.add(issueType);
@@ -2946,15 +3177,17 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
         statusData.storyPoints += sp;
       }
 
-      if (issue.Sprint) {
-        metrics.uniqueSprints.add(issue.Sprint);
-      } else {
+      if (scopedSprints.length) {
+        scopedSprints.forEach((sprint) =&gt; metrics.uniqueSprints.add(sprint));
+      } else if (!issueSprints.length) {
         metrics.hasNoSprint = true;
       }
 
-      if (issue.Sprint &amp;&amp; !issue.Sprint.toLowerCase().includes(&#x27;design&#x27;)) {
-        if (!metrics.sprintBreakdown.has(issue.Sprint)) {
-          metrics.sprintBreakdown.set(issue.Sprint, {
+      scopedSprints
+        .filter((sprint) =&gt; !sprint.toLowerCase().includes(&#x27;design&#x27;))
+        .forEach((sprint) =&gt; {
+        if (!metrics.sprintBreakdown.has(sprint)) {
+          metrics.sprintBreakdown.set(sprint, {
             totalStories: 0,
             uniqueEpics: new Set(),
             totalStoryPoints: 0,
@@ -2962,7 +3195,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
             statusCounts: new Map()
           });
         }
-        const sprintData = metrics.sprintBreakdown.get(issue.Sprint);
+        const sprintData = metrics.sprintBreakdown.get(sprint);
         sprintData.totalStories++;
         if (issue.Parent) sprintData.uniqueEpics.add(issue.Parent);
         sprintData.totalStoryPoints += sp;
@@ -2971,12 +3204,12 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
           const prev = sprintData.statusCounts.get(issue.Status) || 0;
           sprintData.statusCounts.set(issue.Status, prev + 1);
 
-          if (!metrics.sprintStatusMatrix.has(issue.Sprint))
-            metrics.sprintStatusMatrix.set(issue.Sprint, new Map());
-          const sprintMap = metrics.sprintStatusMatrix.get(issue.Sprint);
+          if (!metrics.sprintStatusMatrix.has(sprint))
+            metrics.sprintStatusMatrix.set(sprint, new Map());
+          const sprintMap = metrics.sprintStatusMatrix.get(sprint);
           sprintMap.set(issue.Status, (sprintMap.get(issue.Status) || 0) + 1);
         }
-      }
+      });
 
       if (issue.Parent) {
         metrics.uniqueEpics.set(issue.Parent, issue[&#x27;Parent summary&#x27;] || `Epic ${issue.Parent}`);
@@ -2992,8 +3225,9 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
         const epicData = metrics.epicBreakdown.get(issue.Parent);
         epicData.totalStories++;
         epicData.totalStoryPoints += sp;
-        if (issue.Sprint &amp;&amp; !issue.Sprint.toLowerCase().includes(&#x27;design&#x27;))
-          epicData.sprints.add(issue.Sprint);
+        scopedSprints
+          .filter((sprint) =&gt; !sprint.toLowerCase().includes(&#x27;design&#x27;))
+          .forEach((sprint) =&gt; epicData.sprints.add(sprint));
         if (issue.Status) {
           const prev = epicData.statusCounts.get(issue.Status) || 0;
           epicData.statusCounts.set(issue.Status, prev + 1);
@@ -3044,7 +3278,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     const issueTypes = getSelectedValues(issueTypeSelect);
 
     filteredData = jiraData.filter(issue =&gt; {
-      let matchS = sprints.includes(&#x27;all&#x27;) || (issue.Sprint ? sprints.includes(issue.Sprint) : sprints.includes(NO_SPRINT_VALUE));
+      let matchS = matchesSelectedSprints(issue, sprints);
       let matchE = epics.includes(&#x27;all&#x27;) || (issue.Parent &amp;&amp; epics.includes(issue.Parent));
       let matchSt = statuses.includes(&#x27;all&#x27;) || statuses.includes(issue.Status);
       let matchPM = pms.includes(&#x27;all&#x27;) || pms.includes(issue[&quot;Custom field (Product Manager)&quot;]);
@@ -3054,7 +3288,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     });
     statusPercentageData = getStatusPercentageBaseData();
 
-    const metrics = calculateMetrics(filteredData);
+    const metrics = calculateMetrics(filteredData, { selectedSprints: sprints });
     updateMetricsUI(metrics);
     createCharts(metrics);
     updateEpicStatusTable(metrics);
@@ -3534,37 +3768,232 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
 
     const sprintLabels = sprintEntries.map(([sprint]) =&gt; sprint);
     const sprintCounts = sprintEntries.map(([, d]) =&gt; d.totalStories);
+    const sprintStoryPointTotals = sprintEntries.map(([, d]) =&gt; d.totalStoryPoints);
+    const sprintStorySizes = sprintEntries.map(([, d]) =&gt;
+      d.totalStories ? d.totalStoryPoints / d.totalStories : 0
+    );
+    const totalStories = sprintCounts.reduce((total, count) =&gt; total + count, 0);
+    const totalStoryPoints = sprintStoryPointTotals.reduce((total, points) =&gt; total + points, 0);
+    const sprintCount = sprintEntries.length;
+    const averageStories = sprintCount ? totalStories / sprintCount : 0;
+    const averageStorySize = totalStories ? totalStoryPoints / totalStories : 0;
+    const formatStoryCount = (value) =&gt; Math.round(value).toLocaleString();
+    const formatStorySize = (value) =&gt; Number(value || 0).toFixed(1);
+    const sprintLabelCopy = `${sprintCount.toLocaleString()} ${sprintCount === 1 ? &#x27;sprint&#x27; : &#x27;sprints&#x27;}`;
+    const useCompactSprintTicks = sprintLabels.length &gt; 38;
+    const formatSprintTick = (label) =&gt; {
+      const sprintLabel = String(label || &#x27;&#x27;).trim();
+      if (/^no sprint$/i.test(sprintLabel)) return &#x27;—&#x27;;
+      const match = sprintLabel.match(/sprint\s*(\d+)/i);
+      return match ? `S${match[1]}` : sprintLabel;
+    };
+
+    document.getElementById(&#x27;sprintTrendAverageStories&#x27;).textContent = formatStoryCount(averageStories);
+    document.getElementById(&#x27;sprintTrendAverageStoriesCopy&#x27;).textContent = `across ${sprintLabelCopy}`;
+    document.getElementById(&#x27;sprintTrendAverageSize&#x27;).textContent = formatStorySize(averageStorySize);
+    document.getElementById(&#x27;sprintTrendAverageSizeCopy&#x27;).textContent = &#x27;across all sprints&#x27;;
+    document.getElementById(&#x27;sprintTrendTotalStories&#x27;).textContent = totalStories.toLocaleString();
+    document.getElementById(&#x27;sprintTrendTotalStoriesCopy&#x27;).textContent = `across ${sprintLabelCopy}`;
+    document.getElementById(&#x27;sprintTrendLegendAverageStories&#x27;).textContent =
+      `Avg Stories per Sprint (${formatStoryCount(averageStories)})`;
+    document.getElementById(&#x27;sprintTrendLegendAverageSize&#x27;).textContent =
+      `Overall Avg Story Size (${formatStorySize(averageStorySize)})`;
+
+    const sprintChartWrap = document.getElementById(&#x27;sprintTrendChartWrap&#x27;);
+    if (sprintChartWrap) {
+      sprintChartWrap.style.width = &#x27;100%&#x27;;
+    }
 
     const sprintCtx = document.getElementById(&#x27;sprintChart&#x27;).getContext(&#x27;2d&#x27;);
-    
-    // Create gradient for bar chart
-    const barGradient = sprintCtx.createLinearGradient(0, 0, 0, 400);
-    barGradient.addColorStop(0, &#x27;#6366f1&#x27;);
-    barGradient.addColorStop(0.5, &#x27;#8b5cf6&#x27;);
-    barGradient.addColorStop(1, &#x27;#a855f7&#x27;);
+    const barGradient = sprintCtx.createLinearGradient(0, 0, 0, 460);
+    barGradient.addColorStop(0, &#x27;#5b5cf6&#x27;);
+    barGradient.addColorStop(1, &#x27;#7c7cff&#x27;);
+    const sprintTrendBenchmarkLabelPlugin = {
+      id: &#x27;sprintTrendBenchmarkLabels&#x27;,
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea || !scales.y || !scales.yStorySize) return;
+        const rawOverallLineY = scales.yStorySize.getPixelForValue(averageStorySize);
+        const rawAverageStoriesLineY = scales.y.getPixelForValue(averageStories);
+        const minimumLineGap = 18;
+        const rawLineGap = Math.abs(rawOverallLineY - rawAverageStoriesLineY);
+        const centerY = (rawOverallLineY + rawAverageStoriesLineY) / 2;
+        const overallLineY = rawLineGap &lt; minimumLineGap
+          ? Math.max(chartArea.top + 10, centerY - minimumLineGap / 2)
+          : rawOverallLineY;
+        const averageStoriesLineY = rawLineGap &lt; minimumLineGap
+          ? Math.min(chartArea.bottom - 10, centerY + minimumLineGap / 2)
+          : rawAverageStoriesLineY;
+
+        const drawBenchmarkLine = (y, color) =&gt; {
+          ctx.save();
+          ctx.setLineDash([8, 7]);
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y);
+          ctx.lineTo(chartArea.right, y);
+          ctx.stroke();
+          ctx.restore();
+        };
+
+        drawBenchmarkLine(overallLineY, &#x27;#10b981&#x27;);
+        drawBenchmarkLine(averageStoriesLineY, &#x27;#2563eb&#x27;);
+
+        const drawLabel = (text, y, color, placement) =&gt; {
+          ctx.save();
+          ctx.font = &#x27;700 12px Inter, system-ui, sans-serif&#x27;;
+          ctx.textBaseline = placement === &#x27;above&#x27; ? &#x27;bottom&#x27; : &#x27;top&#x27;;
+          const textWidth = ctx.measureText(text).width;
+          const x = chartArea.left + 18;
+          const textY = placement === &#x27;above&#x27; ? y - 5 : y + 5;
+          const backgroundY = placement === &#x27;above&#x27; ? y - 20 : y + 3;
+          ctx.fillStyle = &#x27;rgba(255, 255, 255, 0.9)&#x27;;
+          ctx.fillRect(x - 6, backgroundY, textWidth + 12, 20);
+          ctx.fillStyle = color;
+          ctx.fillText(text, x, textY);
+          ctx.restore();
+        };
+
+        drawLabel(
+          `Overall Avg Story Size: ${formatStorySize(averageStorySize)}`,
+          overallLineY,
+          &#x27;#059669&#x27;,
+          &#x27;above&#x27;
+        );
+        drawLabel(
+          `Avg Stories per Sprint: ${formatStoryCount(averageStories)}`,
+          averageStoriesLineY,
+          &#x27;#2563eb&#x27;,
+          &#x27;below&#x27;
+        );
+      }
+    };
+    const sprintTrendHoverGuidePlugin = {
+      id: &#x27;sprintTrendHoverGuide&#x27;,
+      afterDatasetsDraw(chart) {
+        const activeElements = chart.tooltip?.getActiveElements() || [];
+        if (!chart.tooltip?.opacity || !activeElements.length) return;
+
+        const { ctx, chartArea } = chart;
+        const x = activeElements[0].element.x;
+        ctx.save();
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 1.25;
+        ctx.strokeStyle = &#x27;rgba(100, 116, 139, 0.75)&#x27;;
+        ctx.beginPath();
+        ctx.moveTo(x, chartArea.top);
+        ctx.lineTo(x, chartArea.bottom);
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+    const externalSprintTrendTooltip = ({ chart, tooltip }) =&gt; {
+      const chartWrap = chart.canvas.parentNode;
+      let tooltipElement = chartWrap.querySelector(&#x27;.sprint-trend-tooltip&#x27;);
+      if (!tooltipElement) {
+        tooltipElement = document.createElement(&#x27;div&#x27;);
+        tooltipElement.className = &#x27;sprint-trend-tooltip&#x27;;
+        tooltipElement.setAttribute(&#x27;aria-hidden&#x27;, &#x27;true&#x27;);
+        chartWrap.appendChild(tooltipElement);
+      }
+
+      const activePoint = tooltip.dataPoints &amp;&amp; tooltip.dataPoints[0];
+      if (!tooltip.opacity || !activePoint) {
+        tooltipElement.style.opacity = &#x27;0&#x27;;
+        tooltipElement.setAttribute(&#x27;aria-hidden&#x27;, &#x27;true&#x27;);
+        return;
+      }
+
+      const index = activePoint.dataIndex;
+      tooltipElement.innerHTML = `
+        &lt;div class=&quot;sprint-trend-tooltip-title&quot;&gt;${sprintLabels[index]}&lt;/div&gt;
+        &lt;div class=&quot;sprint-trend-tooltip-row&quot;&gt;
+          &lt;span class=&quot;sprint-trend-tooltip-dot stories&quot;&gt;&lt;/span&gt;Stories: ${sprintCounts[index].toLocaleString()}
+        &lt;/div&gt;
+        &lt;div class=&quot;sprint-trend-tooltip-row&quot;&gt;
+          &lt;span class=&quot;sprint-trend-tooltip-dot points&quot;&gt;&lt;/span&gt;Total Story Points: ${sprintStoryPointTotals[index].toLocaleString()}
+        &lt;/div&gt;
+        &lt;div class=&quot;sprint-trend-tooltip-row&quot;&gt;
+          &lt;span class=&quot;sprint-trend-tooltip-dot size&quot;&gt;&lt;/span&gt;Avg Story Size: ${sprintStorySizes[index].toFixed(2)}
+        &lt;/div&gt;
+      `;
+
+      const edgePadding = 12;
+      const left = Math.max(
+        edgePadding,
+        Math.min(
+          tooltip.caretX - tooltipElement.offsetWidth / 2,
+          chart.canvas.offsetWidth - tooltipElement.offsetWidth - edgePadding
+        )
+      );
+      tooltipElement.style.left = `${left}px`;
+      tooltipElement.style.top = &#x27;14px&#x27;;
+      tooltipElement.style.opacity = &#x27;1&#x27;;
+      tooltipElement.setAttribute(&#x27;aria-hidden&#x27;, &#x27;false&#x27;);
+    };
 
     window.sprintChartInstance = new Chart(sprintCtx, {
-      type: &#x27;bar&#x27;,
       data: {
         labels: sprintLabels,
         datasets: [{
-          label: &#x27;Number of Issues&#x27;,
+          type: &#x27;bar&#x27;,
+          label: &#x27;Number of Issues (Stories)&#x27;,
           data: sprintCounts,
+          yAxisID: &#x27;y&#x27;,
           backgroundColor: barGradient,
-          borderColor: &#x27;#6366f1&#x27;,
-          borderWidth: 2,
-          borderRadius: 8,
+          borderColor: &#x27;#5b5cf6&#x27;,
+          borderWidth: 1,
+          borderRadius: 4,
           borderSkipped: false,
-          hoverBackgroundColor: &#x27;#818cf8&#x27;,
-          hoverBorderColor: &#x27;#4f46e5&#x27;,
-          hoverBorderWidth: 3
+          categoryPercentage: 0.76,
+          barPercentage: 0.82,
+          hoverBackgroundColor: &#x27;#4f46e5&#x27;,
+          order: 3
+        }, {
+          type: &#x27;line&#x27;,
+          label: &#x27;Average Story Size per Sprint&#x27;,
+          data: sprintStorySizes,
+          yAxisID: &#x27;yStorySize&#x27;,
+          borderColor: &#x27;#10b981&#x27;,
+          backgroundColor: &#x27;#10b981&#x27;,
+          pointBackgroundColor: &#x27;#10b981&#x27;,
+          pointBorderColor: &#x27;#ffffff&#x27;,
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          borderWidth: 2.5,
+          tension: 0.28,
+          order: 1
+        }, {
+          type: &#x27;line&#x27;,
+          label: `Avg Stories per Sprint (${formatStoryCount(averageStories)})`,
+          data: Array(sprintCount).fill(averageStories),
+          yAxisID: &#x27;y&#x27;,
+          borderColor: &#x27;rgba(37, 99, 235, 0)&#x27;,
+          borderWidth: 0,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          isBenchmark: true,
+          order: 0
+        }, {
+          type: &#x27;line&#x27;,
+          label: `Overall Avg Story Size (${formatStorySize(averageStorySize)})`,
+          data: Array(sprintCount).fill(averageStorySize),
+          yAxisID: &#x27;yStorySize&#x27;,
+          borderColor: &#x27;rgba(16, 185, 129, 0)&#x27;,
+          borderWidth: 0,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          isBenchmark: true,
+          order: 0
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         animation: {
-          duration: 1500,
+          duration: 1200,
           easing: &#x27;easeOutQuart&#x27;
         },
         interaction: {
@@ -3576,24 +4005,9 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
             display: false
           },
           tooltip: {
-            backgroundColor: &#x27;rgba(15, 23, 42, 0.9)&#x27;,
-            padding: 12,
-            titleFont: {
-              size: 14,
-              weight: &#x27;600&#x27;
-            },
-            bodyFont: {
-              size: 13
-            },
-            borderColor: &#x27;rgba(255, 255, 255, 0.1)&#x27;,
-            borderWidth: 1,
-            cornerRadius: 8,
-            displayColors: true,
-            callbacks: {
-              label: function(context) {
-                return `${context.dataset.label}: ${context.parsed.y} issues`;
-              }
-            }
+            enabled: false,
+            external: externalSprintTrendTooltip,
+            filter: (context) =&gt; context.dataset.label === &#x27;Number of Issues (Stories)&#x27;,
           }
         },
         scales: {
@@ -3603,49 +4017,89 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
             },
             ticks: {
               autoSkip: false,
-              maxRotation: 45,
-              minRotation: 45,
+              maxRotation: useCompactSprintTicks ? 0 : 40,
+              minRotation: useCompactSprintTicks ? 0 : 40,
+              callback: (value, index) =&gt; useCompactSprintTicks
+                ? formatSprintTick(sprintLabels[index])
+                : sprintLabels[index],
               font: {
-                size: 11
+                size: useCompactSprintTicks ? 10 : 12,
+                weight: &#x27;700&#x27;
               },
-              color: &#x27;#64748b&#x27;
+              color: &#x27;#475569&#x27;
+            },
+            title: {
+              display: true,
+              text: &#x27;Sprint&#x27;,
+              color: &#x27;#475569&#x27;,
+              font: {
+                size: 13,
+                weight: &#x27;700&#x27;
+              },
+              padding: { top: 16 }
             },
             border: {
-              color: &#x27;#e2e8f0&#x27;
+              color: &#x27;#cbd5e1&#x27;
             }
           },
           y: {
             beginAtZero: true,
+            grace: &#x27;10%&#x27;,
             grid: {
-              color: &#x27;#f1f5f9&#x27;,
+              color: &#x27;#e2e8f0&#x27;,
               drawBorder: false
             },
             ticks: {
+              precision: 0,
               font: {
                 size: 11
               },
-              color: &#x27;#64748b&#x27;,
+              color: &#x27;#6366f1&#x27;,
               padding: 10
             },
             border: {
-              color: &#x27;#e2e8f0&#x27;
+              color: &#x27;#6366f1&#x27;
             },
             title: {
               display: true,
               text: &#x27;Number of Issues&#x27;,
-              font: {
-                size: 12,
-                weight: &#x27;600&#x27;
-              },
               color: &#x27;#475569&#x27;,
-              padding: {
-                top: 10,
-                bottom: 10
-              }
+              font: {
+                size: 13,
+                weight: &#x27;700&#x27;
+              },
+              padding: { bottom: 8 }
+            }
+          },
+          yStorySize: {
+            position: &#x27;right&#x27;,
+            beginAtZero: true,
+            grace: &#x27;12%&#x27;,
+            grid: {
+              drawOnChartArea: false
+            },
+            ticks: {
+              color: &#x27;#059669&#x27;,
+              padding: 10,
+              callback: (value) =&gt; Number(value).toFixed(1)
+            },
+            border: {
+              color: &#x27;#10b981&#x27;
+            },
+            title: {
+              display: true,
+              text: &#x27;Average Story Size&#x27;,
+              color: &#x27;#059669&#x27;,
+              font: {
+                size: 13,
+                weight: &#x27;700&#x27;
+              },
+              padding: { bottom: 8 }
             }
           }
         }
-      }
+      },
+      plugins: [sprintTrendBenchmarkLabelPlugin, sprintTrendHoverGuidePlugin]
     });
 
     if (!shouldShowQaDocChart) return;
@@ -3658,18 +4112,20 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     const testCaseDocEmptyBySprint = new Map();
 
     filteredData.forEach((issue) =&gt; {
-      const sprint = issue.Sprint;
       const status = String(issue.Status || &quot;&quot;).trim().toLowerCase();
       const testCaseDoc = String(issue[testCaseDocField] || &quot;&quot;).trim();
       const issueType = String(issue[&quot;Issue Type&quot;] || &quot;&quot;).trim().toLowerCase();
-      if (!sprint || sprint.toLowerCase().includes(&#x27;design&#x27;)) return;
       if (status !== &#x27;qa&#x27;) return;
       if (issueType !== &#x27;story&#x27;) return;
-      if (testCaseDoc) {
-        testCaseDocNonEmptyBySprint.set(sprint, (testCaseDocNonEmptyBySprint.get(sprint) || 0) + 1);
-      } else {
-        testCaseDocEmptyBySprint.set(sprint, (testCaseDocEmptyBySprint.get(sprint) || 0) + 1);
-      }
+      getIndividualSprints(issue.Sprint)
+        .filter((sprint) =&gt; !sprint.toLowerCase().includes(&#x27;design&#x27;))
+        .forEach((sprint) =&gt; {
+          if (testCaseDoc) {
+            testCaseDocNonEmptyBySprint.set(sprint, (testCaseDocNonEmptyBySprint.get(sprint) || 0) + 1);
+          } else {
+            testCaseDocEmptyBySprint.set(sprint, (testCaseDocEmptyBySprint.get(sprint) || 0) + 1);
+          }
+        });
     });
 
     sprintEntries.forEach(([sprint]) =&gt; {
