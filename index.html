@@ -2655,7 +2655,7 @@ Reset
 &lt;div class=&quot;grid grid-cols-1 md:grid-cols-3 gap-4 mb-6&quot;&gt;
 &lt;div class=&quot;sprint-trend-stat stories&quot;&gt;
 &lt;p class=&quot;sprint-trend-stat-label&quot;&gt;Average Stories per Sprint&lt;/p&gt;
-&lt;p class=&quot;sprint-trend-stat-value&quot; id=&quot;sprintTrendAverageStories&quot;&gt;0&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-value&quot; id=&quot;sprintTrendAverageStories&quot;&gt;0.0&lt;/p&gt;
 &lt;p class=&quot;sprint-trend-stat-copy&quot; id=&quot;sprintTrendAverageStoriesCopy&quot;&gt;across 0 sprints&lt;/p&gt;
 &lt;/div&gt;
 &lt;div class=&quot;sprint-trend-stat size&quot;&gt;
@@ -3916,7 +3916,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     const sprintCount = sprintEntries.length;
     const averageStories = sprintCount ? totalStories / sprintCount : 0;
     const averageStorySize = totalStories ? totalStoryPoints / totalStories : 0;
-    const formatStoryCount = (value) =&gt; Math.round(value).toLocaleString();
+    const formatStoryCount = (value) =&gt; Number(value || 0).toFixed(1);
     const formatStorySize = (value) =&gt; Number(value || 0).toFixed(1);
     const sprintLabelCopy = `${sprintCount.toLocaleString()} ${sprintCount === 1 ? &#x27;sprint&#x27; : &#x27;sprints&#x27;}`;
     const useCompactSprintTicks = sprintLabels.length &gt; 38;
