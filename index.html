@@ -599,6 +599,20 @@
     .epic-card input[type=&quot;checkbox&quot;] {
       cursor: pointer;
     }
+    .selected-epic-order-item {
+      cursor: grab;
+      transition: background-color 0.2s ease, opacity 0.2s ease;
+    }
+    .selected-epic-order-item:active {
+      cursor: grabbing;
+    }
+    .selected-epic-order-item.dragging {
+      opacity: 0.45;
+    }
+    .selected-epic-order-item.drag-over {
+      background-color: #ecfdf5;
+      box-shadow: inset 0 2px 0 #10b981;
+    }
     .epic-filter-panel summary {
       list-style: none;
     }
@@ -918,6 +932,16 @@
         &lt;/div&gt;
         &lt;p class=&quot;text-sm text-gray-600 mb-4&quot;&gt;&lt;span id=&quot;epic-count&quot;&gt;0&lt;/span&gt; epics found&lt;/p&gt;
         &lt;div class=&quot;grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4&quot; id=&quot;epic-list&quot;&gt;&lt;/div&gt;
+        &lt;div id=&quot;selected-epic-order-panel&quot; class=&quot;hidden mt-6 rounded-xl border border-emerald-200 bg-emerald-50/50 p-4&quot;&gt;
+          &lt;div class=&quot;flex items-center justify-between gap-3 mb-3&quot;&gt;
+            &lt;div&gt;
+              &lt;h3 class=&quot;font-semibold text-gray-800&quot;&gt;Selected Epics Order&lt;/h3&gt;
+              &lt;p class=&quot;text-xs text-gray-600&quot;&gt;Drag epics into the sequence you want to see below.&lt;/p&gt;
+            &lt;/div&gt;
+            &lt;span id=&quot;selected-epic-order-count&quot; class=&quot;text-xs font-semibold text-emerald-700&quot;&gt;&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div id=&quot;selected-epic-order-list&quot; class=&quot;space-y-2&quot; role=&quot;list&quot; aria-label=&quot;Selected epic order&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
       &lt;/section&gt;
 
       &lt;section class=&quot;detail-section p-6&quot;&gt;
@@ -934,6 +958,7 @@
   let allData = [];
   let epics = [];
   let selectedEpics = new Set();
+  let selectedEpicOrder = [];
   const sortStates = {};
   const filteredStoriesByEpic = {};
   const epicFilterSelections = {};
@@ -1605,8 +1630,10 @@
   function toggleEpic(epicId, checked) {
     if (checked) {
       selectedEpics.add(epicId);
+      if (!selectedEpicOrder.includes(epicId)) selectedEpicOrder.push(epicId);
     } else {
       selectedEpics.delete(epicId);
+      selectedEpicOrder = selectedEpicOrder.filter(id =&gt; id !== epicId);
       delete epicFilterSelections[epicId];
       delete filteredStoriesByEpic[epicId];
     }
@@ -1624,7 +1651,79 @@
         card.setAttribute(&#x27;aria-pressed&#x27;, String(checked));
       }
     }
+    renderSelectedEpicOrder();
     renderDetails();
+  }
+
+  function moveSelectedEpic(epicId, direction) {
+    const currentIndex = selectedEpicOrder.indexOf(epicId);
+    const targetIndex = currentIndex + direction;
+    if (currentIndex &lt; 0 || targetIndex &lt; 0 || targetIndex &gt;= selectedEpicOrder.length) return;
+    const nextOrder = selectedEpicOrder.slice();
+    [nextOrder[currentIndex], nextOrder[targetIndex]] = [nextOrder[targetIndex], nextOrder[currentIndex]];
+    selectedEpicOrder = nextOrder;
+    renderSelectedEpicOrder();
+    renderDetails();
+  }
+
+  function reorderSelectedEpic(draggedId, targetId) {
+    if (!draggedId || !targetId || draggedId === targetId) return;
+    const fromIndex = selectedEpicOrder.indexOf(draggedId);
+    const toIndex = selectedEpicOrder.indexOf(targetId);
+    if (fromIndex &lt; 0 || toIndex &lt; 0) return;
+    const nextOrder = selectedEpicOrder.slice();
+    nextOrder.splice(fromIndex, 1);
+    nextOrder.splice(toIndex, 0, draggedId);
+    selectedEpicOrder = nextOrder;
+    renderSelectedEpicOrder();
+    renderDetails();
+  }
+
+  function renderSelectedEpicOrder() {
+    const panel = document.getElementById(&quot;selected-epic-order-panel&quot;);
+    const list = document.getElementById(&quot;selected-epic-order-list&quot;);
+    const count = document.getElementById(&quot;selected-epic-order-count&quot;);
+    if (!panel || !list || !count) return;
+
+    selectedEpicOrder = selectedEpicOrder.filter(id =&gt; selectedEpics.has(id));
+    panel.classList.toggle(&quot;hidden&quot;, selectedEpicOrder.length === 0);
+    count.textContent = selectedEpicOrder.length ? `${selectedEpicOrder.length} selected` : &quot;&quot;;
+    list.innerHTML = &quot;&quot;;
+
+    selectedEpicOrder.forEach((id, index) =&gt; {
+      const epic = epics.find(item =&gt; item.id === id);
+      if (!epic) return;
+      const item = document.createElement(&quot;div&quot;);
+      item.className = &quot;selected-epic-order-item flex items-center gap-3 rounded-lg border border-emerald-100 bg-white px-3 py-2&quot;;
+      item.draggable = true;
+      item.dataset.epicId = id;
+      item.setAttribute(&quot;role&quot;, &quot;listitem&quot;);
+      item.innerHTML = `
+        &lt;span class=&quot;w-7 text-center text-sm font-bold text-emerald-700&quot;&gt;${index + 1}&lt;/span&gt;
+        &lt;span class=&quot;flex-1 text-sm font-medium text-gray-800&quot;&gt;${epic.summary}&lt;/span&gt;
+        &lt;button type=&quot;button&quot; class=&quot;order-up rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-emerald-100 disabled:opacity-30&quot; ${index === 0 ? &quot;disabled&quot; : &quot;&quot;} aria-label=&quot;Move ${epic.summary} up&quot; title=&quot;Move up&quot;&gt;↑&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;order-down rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-emerald-100 disabled:opacity-30&quot; ${index === selectedEpicOrder.length - 1 ? &quot;disabled&quot; : &quot;&quot;} aria-label=&quot;Move ${epic.summary} down&quot; title=&quot;Move down&quot;&gt;↓&lt;/button&gt;
+      `;
+      item.querySelector(&quot;.order-up&quot;).addEventListener(&quot;click&quot;, () =&gt; moveSelectedEpic(id, -1));
+      item.querySelector(&quot;.order-down&quot;).addEventListener(&quot;click&quot;, () =&gt; moveSelectedEpic(id, 1));
+      item.addEventListener(&quot;dragstart&quot;, event =&gt; {
+        event.dataTransfer.effectAllowed = &quot;move&quot;;
+        event.dataTransfer.setData(&quot;text/plain&quot;, id);
+        item.classList.add(&quot;dragging&quot;);
+      });
+      item.addEventListener(&quot;dragend&quot;, () =&gt; item.classList.remove(&quot;dragging&quot;));
+      item.addEventListener(&quot;dragover&quot;, event =&gt; {
+        event.preventDefault();
+        item.classList.add(&quot;drag-over&quot;);
+      });
+      item.addEventListener(&quot;dragleave&quot;, () =&gt; item.classList.remove(&quot;drag-over&quot;));
+      item.addEventListener(&quot;drop&quot;, event =&gt; {
+        event.preventDefault();
+        item.classList.remove(&quot;drag-over&quot;);
+        reorderSelectedEpic(event.dataTransfer.getData(&quot;text/plain&quot;), id);
+      });
+      list.appendChild(item);
+    });
   }
 
   function removeEpic(epicId) {
@@ -1690,7 +1789,7 @@
       return;
     }
 
-    selectedEpics.forEach(id =&gt; {
+    selectedEpicOrder.forEach(id =&gt; {
       const epic = epics.find(e =&gt; e.id === id);
       if (!epic) return;
       const effectiveSelections = getEffectiveEpicSelections(epic);
