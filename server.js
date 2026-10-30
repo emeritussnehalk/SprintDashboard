@@ -213,6 +213,7 @@ async function discoverFields(config) {
       'Test Case Docs',
       'Custom field (Test Case Doc)',
     ]),
+    'Release Date': process.env.JIRA_FIELD_RELEASE_DATE || 'customfield_11180',
   };
 }
 
@@ -317,12 +318,27 @@ function getMappedField(fields, fieldMap, name) {
   return id ? fields[id] : '';
 }
 
+function extractSprintDetails(sprintValue) {
+  if (!Array.isArray(sprintValue)) return [];
+  return sprintValue
+    .filter((sprint) => sprint && typeof sprint === 'object')
+    .map((sprint) => ({
+      id: sprint.id || '',
+      name: sprint.name || '',
+      startDate: sprint.startDate || '',
+      endDate: sprint.endDate || '',
+      completeDate: sprint.completeDate || '',
+    }))
+    .filter((sprint) => sprint.name || sprint.startDate || sprint.endDate);
+}
+
 function mapIssueToRecord(issue, fieldMap) {
   const fields = issue.fields || {};
   const parent = fields.parent || {};
   const parentFields = parent.fields || {};
   const project = fields.project || {};
   const parentSummary = parentFields.summary || parent.summary || parent.key || '';
+  const sprintValue = getMappedField(fields, fieldMap, 'Sprint');
 
   return {
     'Issue Type': extractDisplayValue(fields.issuetype && (fields.issuetype.name || fields.issuetype)),
@@ -334,7 +350,9 @@ function mapIssueToRecord(issue, fieldMap) {
     'Parent summary': extractDisplayValue(parentSummary),
     Parent: extractDisplayValue(parentSummary),
     Summary: extractDisplayValue(fields.summary),
-    Sprint: extractDisplayValue(getMappedField(fields, fieldMap, 'Sprint')),
+    Sprint: extractDisplayValue(sprintValue),
+    'Sprint Details': extractSprintDetails(sprintValue),
+    'Release Date': extractDisplayValue(getMappedField(fields, fieldMap, 'Release Date')),
     Status: extractDisplayValue(fields.status && (fields.status.name || fields.status)),
     Assignee: extractDisplayValue(fields.assignee),
     'Custom field (Story Points)': extractDisplayValue(getMappedField(fields, fieldMap, 'Story Points')),

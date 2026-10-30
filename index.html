@@ -2729,11 +2729,11 @@ Issue Type
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;mt-6 flex justify-end gap-3&quot;&gt;
-&lt;button class=&quot;bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2&quot; id=&quot;apply-filters&quot;&gt;
+&lt;button class=&quot;order-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2&quot; id=&quot;apply-filters&quot;&gt;
 &lt;svg class=&quot;w-5 h-5&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
 Apply Filters
         &lt;/button&gt;
-&lt;button class=&quot;hidden bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400 font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 flex items-center gap-2&quot; id=&quot;reset-filters&quot;&gt;
+&lt;button class=&quot;order-2 bg-white border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2&quot; id=&quot;reset-filters&quot;&gt;
 &lt;svg class=&quot;w-5 h-5&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
 Reset
         &lt;/button&gt;
@@ -2776,7 +2776,14 @@ Reset
 &lt;!-- Data Visualization --&gt;
 &lt;div class=&quot;mb-10&quot;&gt;
 &lt;h2 class=&quot;text-2xl font-bold text-gray-800 mb-6&quot;&gt;Data Visualization&lt;/h2&gt;
-&lt;div class=&quot;grid grid-cols-1 gap-6&quot;&gt;
+&lt;div class=&quot;mb-6 border-b border-gray-200&quot;&gt;
+&lt;nav class=&quot;flex flex-wrap -mb-px&quot; role=&quot;tablist&quot; aria-label=&quot;Data visualization&quot;&gt;
+&lt;button type=&quot;button&quot; class=&quot;viz-tab tab-active py-4 px-6 text-sm font-medium&quot; id=&quot;viz-tab-trend&quot; role=&quot;tab&quot; aria-selected=&quot;true&quot; aria-controls=&quot;viz-panel-trend&quot;&gt;Sprint Load &amp;amp; Story Size Trend&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;viz-tab py-4 px-6 text-sm font-medium text-gray-500 hover:text-gray-700&quot; id=&quot;viz-tab-done&quot; role=&quot;tab&quot; aria-selected=&quot;false&quot; aria-controls=&quot;viz-panel-done&quot;&gt;Cards Moved to Done&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;viz-tab py-4 px-6 text-sm font-medium text-gray-500 hover:text-gray-700&quot; id=&quot;viz-tab-status&quot; role=&quot;tab&quot; aria-selected=&quot;false&quot; aria-controls=&quot;viz-panel-status&quot;&gt;Issues by Status&lt;/button&gt;
+&lt;/nav&gt;
+&lt;/div&gt;
+&lt;div id=&quot;viz-panel-trend&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;viz-tab-trend&quot;&gt;
 &lt;div class=&quot;sprint-trend-container&quot;&gt;
 &lt;div&gt;
 &lt;h3 class=&quot;sprint-trend-title&quot;&gt;Sprint Load &amp;amp; Story Size Trend&lt;/h3&gt;
@@ -2811,6 +2818,49 @@ Reset
 &lt;span class=&quot;sprint-trend-legend-item&quot;&gt;&lt;span class=&quot;sprint-trend-legend-swatch avg-size&quot;&gt;&lt;/span&gt;&lt;span id=&quot;sprintTrendLegendAverageSize&quot;&gt;Overall Avg Story Size&lt;/span&gt;&lt;/span&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;hidden&quot; id=&quot;viz-panel-done&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;viz-tab-done&quot;&gt;
+&lt;div class=&quot;grid grid-cols-1 gap-6&quot;&gt;
+&lt;div class=&quot;chart-container&quot;&gt;
+&lt;div class=&quot;flex items-center justify-between gap-4 mb-4&quot;&gt;
+&lt;div&gt;
+&lt;h3 class=&quot;chart-title&quot;&gt;Sprint Completion Insights&lt;/h3&gt;
+&lt;p class=&quot;text-sm text-gray-500&quot;&gt;Completion behavior based on Release Date within each sprint span.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;grid grid-cols-1 md:grid-cols-3 gap-4 mb-6&quot;&gt;
+&lt;div class=&quot;sprint-trend-stat stories&quot;&gt;
+&lt;p class=&quot;sprint-trend-stat-label&quot;&gt;Cards Completed within Sprint&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-value&quot; id=&quot;done-insight-total&quot;&gt;0&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-copy&quot; id=&quot;done-insight-total-copy&quot;&gt;across 0 sprints&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sprint-trend-stat size&quot;&gt;
+&lt;p class=&quot;sprint-trend-stat-label&quot;&gt;Completion Rate&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-value&quot; id=&quot;done-insight-rate&quot;&gt;0.0%&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-copy&quot;&gt;Done cards / sprint cards&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sprint-trend-stat total&quot;&gt;
+&lt;p class=&quot;sprint-trend-stat-label&quot;&gt;Cards Not Completed within Sprint&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-value&quot; id=&quot;done-insight-not-done&quot;&gt;0&lt;/p&gt;
+&lt;p class=&quot;sprint-trend-stat-copy&quot; id=&quot;done-insight-not-done-copy&quot;&gt;including late or missing dates&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;mb-3 flex justify-center gap-6 text-sm font-medium text-gray-600&quot; aria-label=&quot;Chart legend&quot;&gt;
+&lt;span class=&quot;inline-flex items-center gap-2&quot;&gt;&lt;span class=&quot;inline-block h-4 w-8 rounded-sm bg-emerald-500&quot;&gt;&lt;/span&gt;Cards Completed within Sprint&lt;/span&gt;
+&lt;span class=&quot;inline-flex items-center gap-2&quot;&gt;&lt;span class=&quot;inline-block h-4 w-8 rounded-sm bg-slate-300&quot;&gt;&lt;/span&gt;Cards Not Completed within Sprint&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=&quot;mb-6 flex&quot; style=&quot;height: 360px;&quot;&gt;
+&lt;div id=&quot;doneInsightYAxis&quot; class=&quot;flex w-12 flex-shrink-0 flex-col justify-between pr-2 text-right text-xs text-gray-500&quot; style=&quot;height: 320px; padding-top: 4px; padding-bottom: 28px;&quot; aria-label=&quot;Cards axis&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;flex-1 overflow-x-auto&quot; id=&quot;doneInsightChartScroll&quot;&gt;
+&lt;div id=&quot;doneInsightChartWrap&quot; style=&quot;height: 320px; min-width: 900px;&quot;&gt;
+&lt;canvas height=&quot;320&quot; id=&quot;doneInsightChart&quot;&gt;&lt;/canvas&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p class=&quot;hidden py-8 text-center text-sm text-gray-500&quot; id=&quot;done-insight-empty&quot;&gt;No sprint date or Release Date data is available for the selected cards.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;hidden&quot; id=&quot;viz-panel-status&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;viz-tab-status&quot;&gt;
 &lt;div class=&quot;grid grid-cols-1 md:grid-cols-2 gap-6&quot;&gt;
 &lt;div class=&quot;chart-container&quot;&gt;
 &lt;div class=&quot;status-chart-heading&quot;&gt;
@@ -2963,6 +3013,11 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   const applyFiltersBtn = document.getElementById(&#x27;apply-filters&#x27;);
   const resetFiltersBtn = document.getElementById(&#x27;reset-filters&#x27;);
   const statusStoryFilterToggle = document.getElementById(&#x27;statusStoryFilterToggle&#x27;);
+  const vizTabs = {
+    trend: document.getElementById(&#x27;viz-tab-trend&#x27;),
+    done: document.getElementById(&#x27;viz-tab-done&#x27;),
+    status: document.getElementById(&#x27;viz-tab-status&#x27;)
+  };
 
   const NO_SPRINT_VALUE = &#x27;__NO_SPRINT__&#x27;;
   const NO_SPRINT_LABEL = &#x27;No Sprint&#x27;;
@@ -3014,6 +3069,9 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   tabStatus.addEventListener(&#x27;click&#x27;, () =&gt; switchTab(&#x27;status&#x27;));
   tabSprintStatus.addEventListener(&#x27;click&#x27;, () =&gt; switchTab(&#x27;sprint-status&#x27;));
   tabEpicStatus.addEventListener(&#x27;click&#x27;, () =&gt; switchTab(&#x27;epic-status&#x27;));
+  Object.entries(vizTabs).forEach(([name, tab]) =&gt; {
+    if (tab) tab.addEventListener(&#x27;click&#x27;, () =&gt; switchVisualizationTab(name));
+  });
 
   applyFiltersBtn.addEventListener(&#x27;click&#x27;, applyFilters);
   resetFiltersBtn.addEventListener(&#x27;click&#x27;, resetFilters);
@@ -3022,6 +3080,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     const selectedSprints = getSelectedValues(sprintSelect);
     const metrics = calculateMetrics(filteredData, { selectedSprints });
     createCharts(metrics);
+    renderDoneTransitions(filteredData);
   });
 
   sprintSelect = document.getElementById(&#x27;sprint-filter&#x27;);
@@ -3396,9 +3455,135 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     populateFilters(metrics);
     updateMetricsUI(metrics);
     createCharts(metrics);
+    renderDoneTransitions(data);
     updateEpicStatusTable(metrics);
     dashboardContent.classList.remove(&#x27;hidden&#x27;);
     noDataMessage.classList.add(&#x27;hidden&#x27;);
+  }
+
+  function switchVisualizationTab(tabName) {
+    const names = [&#x27;trend&#x27;, &#x27;done&#x27;, &#x27;status&#x27;];
+    names.forEach(name =&gt; {
+      const tab = document.getElementById(`viz-tab-${name}`);
+      const panel = document.getElementById(`viz-panel-${name}`);
+      if (!tab || !panel) return;
+      const active = name === tabName;
+      tab.setAttribute(&#x27;aria-selected&#x27;, String(active));
+      tab.classList.toggle(&#x27;tab-active&#x27;, active);
+      tab.classList.toggle(&#x27;text-gray-500&#x27;, !active);
+      panel.classList.toggle(&#x27;hidden&#x27;, !active);
+    });
+    if (tabName === &#x27;done&#x27;) renderDoneTransitions(filteredData);
+    if (tabName === &#x27;trend&#x27; &amp;&amp; window.sprintChartInstance) window.sprintChartInstance.resize();
+    if (tabName === &#x27;status&#x27; &amp;&amp; window.statusChartInstance) window.statusChartInstance.resize();
+  }
+
+  function renderDoneTransitions(data) {
+    const totalElement = document.getElementById(&#x27;done-insight-total&#x27;);
+    const totalCopy = document.getElementById(&#x27;done-insight-total-copy&#x27;);
+    const rateElement = document.getElementById(&#x27;done-insight-rate&#x27;);
+    const notDoneElement = document.getElementById(&#x27;done-insight-not-done&#x27;);
+    const notDoneCopy = document.getElementById(&#x27;done-insight-not-done-copy&#x27;);
+    const empty = document.getElementById(&#x27;done-insight-empty&#x27;);
+    if (!totalElement || !totalCopy || !rateElement || !notDoneElement || !empty) return;
+
+    const selectedSprints = getSelectedValues(sprintSelect);
+    const sprintMap = new Map();
+    (data || []).forEach(issue =&gt; {
+      const sprintDetails = Array.isArray(issue[&#x27;Sprint Details&#x27;]) ? issue[&#x27;Sprint Details&#x27;] : [];
+      sprintDetails.forEach(sprint =&gt; {
+        if (!sprint.name || (selectedSprints.length &amp;&amp; !selectedSprints.includes(&#x27;all&#x27;) &amp;&amp; !selectedSprints.includes(sprint.name))) return;
+        const startDate = new Date(sprint.startDate);
+        const endDate = new Date(sprint.endDate);
+        if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return;
+        if (!sprintMap.has(sprint.name)) {
+          sprintMap.set(sprint.name, { total: 0, done: 0, notDone: 0, late: 0, issueKeys: new Set() });
+        }
+        const result = sprintMap.get(sprint.name);
+        const issueKey = issue[&#x27;Issue key&#x27;] || `${sprint.name}-${result.total}`;
+        if (result.issueKeys.has(issueKey)) return;
+        result.issueKeys.add(issueKey);
+        result.total++;
+        const releaseDate = new Date(issue[&#x27;Release Date&#x27;]);
+        const hasReleaseDate = !Number.isNaN(releaseDate.getTime());
+        if (hasReleaseDate &amp;&amp; releaseDate &gt;= startDate &amp;&amp; releaseDate &lt;= endDate) {
+          result.done++;
+        } else {
+          result.notDone++;
+          if (hasReleaseDate &amp;&amp; releaseDate &gt; endDate) result.late++;
+        }
+      });
+    });
+
+    const rows = Array.from(sprintMap.entries()).sort((a, b) =&gt; a[0].localeCompare(b[0], undefined, { numeric: true }));
+    const totalCards = rows.reduce((sum, [, item]) =&gt; sum + item.total, 0);
+    const totalDone = rows.reduce((sum, [, item]) =&gt; sum + item.done, 0);
+    const totalNotDone = rows.reduce((sum, [, item]) =&gt; sum + item.notDone, 0);
+    const totalLate = rows.reduce((sum, [, item]) =&gt; sum + item.late, 0);
+    totalElement.textContent = String(totalDone);
+    totalCopy.textContent = `across ${rows.length} sprint${rows.length === 1 ? &#x27;&#x27; : &#x27;s&#x27;}`;
+    rateElement.textContent = `${totalCards ? ((totalDone / totalCards) * 100).toFixed(1) : &#x27;0.0&#x27;}%`;
+    notDoneElement.textContent = String(totalNotDone);
+    notDoneCopy.textContent = `${totalLate} completed after sprint end`;
+    empty.classList.toggle(&#x27;hidden&#x27;, rows.length &gt; 0);
+    renderDoneInsightChart(rows);
+  }
+
+  function renderDoneInsightChart(rows) {
+    const canvas = document.getElementById(&#x27;doneInsightChart&#x27;);
+    if (!canvas || typeof Chart === &#x27;undefined&#x27;) return;
+    if (window.doneInsightChartInstance) window.doneInsightChartInstance.destroy();
+    const labels = rows.map(([name]) =&gt; name);
+    const chartWrap = document.getElementById(&#x27;doneInsightChartWrap&#x27;);
+    if (chartWrap) chartWrap.style.width = `${Math.max(900, labels.length * 36)}px`;
+    const maxTotal = Math.max(10, ...rows.map(([, item]) =&gt; item.total));
+    const chartMax = Math.ceil(maxTotal / 10) * 10;
+    const axis = document.getElementById(&#x27;doneInsightYAxis&#x27;);
+    if (axis) {
+      axis.innerHTML = Array.from({ length: 6 }, (_, index) =&gt; {
+        const value = Math.round(chartMax - (chartMax / 5) * index);
+        return `&lt;span&gt;${value}&lt;/span&gt;`;
+      }).join(&#x27;&#x27;);
+    }
+    window.doneInsightChartInstance = new Chart(canvas.getContext(&#x27;2d&#x27;), {
+      type: &#x27;bar&#x27;,
+      data: {
+        labels,
+        datasets: [
+          { label: &#x27;Cards Completed within Sprint&#x27;, data: rows.map(([, item]) =&gt; item.done), backgroundColor: &#x27;#10b981&#x27; },
+          { label: &#x27;Cards Not Completed within Sprint&#x27;, data: rows.map(([, item]) =&gt; item.notDone), backgroundColor: &#x27;#cbd5e1&#x27; }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items) =&gt; items.length ? items[0].label : &#x27;&#x27;,
+              label: () =&gt; null,
+              afterBody: (items) =&gt; {
+                if (!items.length) return [];
+                const item = rows[items[0].dataIndex][1];
+                const rate = item.total ? ((item.done / item.total) * 100).toFixed(1) : &#x27;0.0&#x27;;
+                return [
+                  `Total cards: ${item.total}`,
+                  `Cards completed within sprint: ${item.done}`,
+                  `Cards not completed within sprint: ${item.notDone}`,
+                  `Completion rate: ${rate}%`,
+                  `Done after sprint end: ${item.late}`
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          x: { stacked: true, ticks: { autoSkip: false, maxRotation: 55, minRotation: 45 } },
+          y: { stacked: true, beginAtZero: true, max: chartMax, ticks: { display: false, stepSize: chartMax / 5 }, grid: { drawTicks: false } }
+        }
+      }
+    });
   }
 
   function calculateMetrics(data, options = {}) {
@@ -3557,6 +3742,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     const metrics = calculateMetrics(filteredData, { selectedSprints: sprints });
     updateMetricsUI(metrics);
     createCharts(metrics);
+    renderDoneTransitions(filteredData);
     updateEpicStatusTable(metrics);
   }
 
@@ -3571,6 +3757,7 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     const metrics = calculateMetrics(jiraData);
     updateMetricsUI(metrics);
     createCharts(metrics);
+    renderDoneTransitions(filteredData);
     updateEpicStatusTable(metrics);
   }
 
