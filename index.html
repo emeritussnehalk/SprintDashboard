@@ -3029,6 +3029,33 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
   let statusPercentageSourceData = [];
   let currentSource = &#x27;SEJ&#x27;;
   let statusStoryFilterEnabled = false;
+  const sprintMetadataByName = new Map();
+
+  function captureSprintMetadata(data) {
+    (Array.isArray(data) ? data : []).forEach(issue =&gt; {
+      const details = Array.isArray(issue[&#x27;Sprint Details&#x27;]) ? issue[&#x27;Sprint Details&#x27;] : [];
+      details.forEach(sprint =&gt; {
+        if (sprint &amp;&amp; sprint.name &amp;&amp; sprint.startDate &amp;&amp; sprint.endDate) {
+          sprintMetadataByName.set(sprint.name, { ...sprint });
+        }
+      });
+    });
+  }
+
+  function normalizeImportedRecords(data) {
+    return (Array.isArray(data) ? data : []).map(issue =&gt; {
+      const normalized = { ...issue };
+      if (!normalized[&#x27;Release Date&#x27;]) {
+        normalized[&#x27;Release Date&#x27;] = normalized[&#x27;Custom field (Release Date)&#x27;] || &#x27;&#x27;;
+      }
+      if (!Array.isArray(normalized[&#x27;Sprint Details&#x27;])) {
+        normalized[&#x27;Sprint Details&#x27;] = getIndividualSprints(normalized.Sprint)
+          .map(name =&gt; sprintMetadataByName.get(name))
+          .filter(Boolean);
+      }
+      return normalized;
+    });
+  }
 
   // --- Injected: accept JSON from parent (shared upload/API) ---
   window.addEventListener(&#x27;PARENT_JIRA_JSON_READY&#x27;, function(){
@@ -3037,7 +3064,8 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
       if(!incoming) return;
       const incomingStatusPercentage = window.__PARENT_JIRA_STATUS_PERCENTAGE_PAYLOAD__;
       currentSource = window.__PARENT_JIRA_SOURCE__ || currentSource;
-      jiraData = incoming;
+      captureSprintMetadata(incoming);
+      jiraData = normalizeImportedRecords(incoming);
       filteredData = Array.isArray(incoming) ? [...incoming] : [incoming];
       statusPercentageData = Array.isArray(incomingStatusPercentage)
         ? [...incomingStatusPercentage]
@@ -3430,9 +3458,9 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     reader.onload = e =&gt; {
       try {
         if (fileExtension === &#x27;csv&#x27;) {
-          jiraData = parseCSV(e.target.result);
+          jiraData = normalizeImportedRecords(parseCSV(e.target.result));
         } else {
-          jiraData = JSON.parse(e.target.result);
+          jiraData = normalizeImportedRecords(JSON.parse(e.target.result));
         }
         filteredData = [...jiraData];
         statusPercentageData = [...jiraData];
