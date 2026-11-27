@@ -2860,6 +2860,7 @@ Reset
 &lt;p class=&quot;hidden py-8 text-center text-sm text-gray-500&quot; id=&quot;done-insight-empty&quot;&gt;No sprint date or Release Date data is available for the selected cards.&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class=&quot;hidden&quot; id=&quot;viz-panel-status&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;viz-tab-status&quot;&gt;
 &lt;div class=&quot;grid grid-cols-1 md:grid-cols-2 gap-6&quot;&gt;
 &lt;div class=&quot;chart-container&quot;&gt;
@@ -3502,8 +3503,10 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
       panel.classList.toggle(&#x27;hidden&#x27;, !active);
     });
     if (tabName === &#x27;done&#x27;) renderDoneTransitions(filteredData);
-    if (tabName === &#x27;trend&#x27; &amp;&amp; window.sprintChartInstance) window.sprintChartInstance.resize();
-    if (tabName === &#x27;status&#x27; &amp;&amp; window.statusChartInstance) window.statusChartInstance.resize();
+    if (tabName === &#x27;trend&#x27; || tabName === &#x27;status&#x27;) {
+      const selectedSprints = getSelectedValues(sprintSelect);
+      createCharts(calculateMetrics(filteredData, { selectedSprints }));
+    }
   }
 
   function renderDoneTransitions(data) {
